@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสำรวจผลงานวิชาการ คณะพยาบาลศาสตร์ มหาวิทยาลัยราชภัฏสงขลา</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cattleya: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce', // Deep Orchid
+              800: '#6b21a8', // Rich Royal Cattleya
+              900: '#581c87',
+              950: '#3b0764',
+            }
+          },
+          fontFamily: {
+            sans: ['Sarabun', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Sarabun & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons 6.5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- SheetJS for Excel / Spreadsheet Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Sarabun', 'Inter', sans-serif;
+      background-color: #faf8fd;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #faf5ff;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d8b4fe;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #9333ea;
+    }
+    .cattleya-gradient {
+      background: linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #9333ea 100%);
+    }
+    .cattleya-card-gradient {
+      background: linear-gradient(135deg, rgba(126, 34, 206, 0.04) 0%, rgba(192, 132, 252, 0.08) 100%);
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-purple-100 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Brand / Identity -->
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-2xl cattleya-gradient flex items-center justify-center text-white shadow-md ring-2 ring-purple-100 flex-shrink-0">
+            <i class="fa-solid fa-graduation-cap text-2xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-purple-100 text-purple-900 rounded-md border border-purple-200">
+                SKRU Nursing Academic Registry
+              </span>
+              <span class="text-xs text-slate-500 font-medium hidden sm:inline">
+                มหาวิทยาลัยราชภัฏสงขลา
+              </span>
+            </div>
+            <h1 class="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+              ระบบสำรวจผลงานวิชาการ คณะพยาบาลศาสตร์
+            </h1>
+            <p class="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
+              <span class="text-purple-700 font-medium"><i class="fa-solid fa-building-columns mr-1"></i>คณะพยาบาลศาสตร์ มรภ.สงขลา</span>
+              <span class="text-slate-300">•</span>
+              <span class="text-slate-600">วิจัย • งานสร้างสรรค์ • ทรัพย์สินทางปัญญา</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Action / Sheet Integration Status -->
+        <div class="flex items-center flex-wrap gap-2">
+          <!-- Google Sheets Status Button -->
+          <button onclick="openConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200 transition-all shadow-xs" title="ตั้งค่าเชื่อมต่อ Google Sheets">
+            <i class="fa-solid fa-table-cells text-emerald-600 mr-1.5"></i>
+            <span id="sheetConnectionLabel">ตั้งค่า Google Sheet</span>
+            <span id="sheetStatusDot" class="w-2 h-2 rounded-full bg-amber-400 ml-1.5 animate-pulse"></span>
+          </button>
+
+          <!-- Export Excel Directly -->
+          <button onclick="exportSheetToExcel()" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-xs">
+            <i class="fa-solid fa-file-excel mr-1.5 text-emerald-600"></i>
+            ดาวน์โหลด Sheet (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-6 border-t border-purple-50 mt-3 pt-2 text-xs font-medium" id="mainTabs">
+        <button onclick="switchTab('form')" id="tab-form" class="py-2 border-b-2 border-purple-700 text-purple-800 font-bold flex items-center gap-1.5 transition-colors">
+          <i class="fa-solid fa-pen-to-square"></i> แบบฟอร์มบันทึกผลงาน (Survey Form)
+        </button>
+        <button onclick="switchTab('sheet')" id="tab-sheet" class="py-2 border-b-2 border-transparent text-slate-500 hover:text-purple-700 flex items-center gap-1.5 transition-colors">
+          <i class="fa-solid fa-table-cells"></i> ฐานข้อมูลรวบรวมใน Sheet (<span id="sheetRowCountBadge">0</span>)
+        </button>
+        <button onclick="switchTab('summary')" id="tab-summary" class="py-2 border-b-2 border-transparent text-slate-500 hover:text-purple-700 flex items-center gap-1.5 transition-colors">
+          <i class="fa-solid fa-chart-pie"></i> แดชบอร์ดสรุปภาพรวม (Summary)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full space-y-6">
+
+    <div id="view-form" class="space-y-6">
+
+      <!-- Form Intro Banner -->
+      <div class="rounded-2xl p-4 sm:p-5 cattleya-gradient text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white backdrop-blur-xs">
+            แบบสำรวจข้อมูลผลงานวิชาการคณาจารย์
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold tracking-tight">
+            บันทึกผลงานวิชาการ: งานวิจัย, งานสร้างสรรค์ และทรัพย์สินทางปัญญา
+          </h2>
+          <p class="text-xs text-purple-100 max-w-2xl leading-relaxed">
+            ขอความร่วมมือคณาจารย์ คณะพยาบาลศาสตร์ มหาวิทยาลัยราชภัฏสงขลา บันทึกผลงานทั้งที่<strong>ดำเนินการสำเร็จแล้ว</strong> และ<strong>ที่กำลังดำเนินการอยู่ (In-Progress)</strong> เพื่อจัดเก็บรวบรวมเข้าสู่ Sheet กลางของคณะ
+          </p>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 rounded-xl p-3 border border-white/15 backdrop-blur-xs flex-shrink-0 text-xs">
+          <div class="text-right">
+            <p class="text-[11px] text-purple-200">สถานะจัดเก็บ</p>
+            <p class="font-bold text-white" id="liveSyncStatusText">พร้อมบันทึกเข้า Sheet กลาง</p>
+          </div>
+          <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Submission Form Card -->
+      <form id="academicWorkForm" onsubmit="handleFormSubmission(event)" class="bg-white rounded-2xl border border-purple-100 shadow-xs p-5 sm:p-7 space-y-6">
+
+        <!-- STEP 1: Lecturer & Reporter Information -->
+        <div class="border-b border-purple-100 pb-6 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl cattleya-gradient text-white flex items-center justify-center text-xs font-black shadow-xs">1</span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                กรอกข้อมูลอาจารย์ (Faculty Information)
+              </h3>
+              <p class="text-[11px] text-slate-500">ข้อมูลอาจารย์ผู้รายงานและผู้ร่วมจัดทำผลงาน</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <!-- Title + Full Name -->
+            <div class="lg:col-span-2 space-y-1.5">
+              <label class="block font-bold text-slate-700">
+                ชื่อ-สกุล อาจารย์ผู้รายงาน <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <i class="fa-solid fa-user-nurse absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"></i>
+                <input type="text" id="facultyName" required placeholder="เช่น ผศ.ดร.พัชรี สุวรรณรัตน์"
+                       class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors">
+              </div>
+            </div>
+
+            <!-- Nursing Department -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">
+                กลุ่มสาขาวิชา <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <select id="department" required class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 pr-7 text-xs text-slate-700 font-medium focus:outline-none focus:border-purple-600 focus:bg-white">
+                  <option value="" disabled selected>-- เลือกกลุ่มสาขาวิชา --</option>
+                  <option value="การพยาบาลผู้ใหญ่และผู้สูงอายุ">การพยาบาลผู้ใหญ่และผู้สูงอายุ</option>
+                  <option value="การพยาบาลมารดา ทารก และการผดุงครรภ์">การพยาบาลมารดา ทารก และการผดุงครรภ์</option>
+                  <option value="การพยาบาลเด็กและวัยรุ่น">การพยาบาลเด็กและวัยรุ่น</option>
+                  <option value="การพยาบาลสุขภาพจิตและจิตเวช">การพยาบาลสุขภาพจิตและจิตเวช</option>
+                  <option value="การพยาบาลอนามัยชุมชน">การพยาบาลอนามัยชุมชน</option>
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+              </div>
+            </div>
+
+            <!-- Academic Year (พ.ศ.) -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700" id="workYearLabel">
+                ปี พ.ศ. ที่ดำเนินการ/ตีพิมพ์/จดทะเบียน <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"></i>
+                <input type="number" id="workYear" required min="2500" max="2600" value="2567" placeholder="เช่น 2567"
+                       class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs font-semibold text-slate-700 transition-colors">
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">อีเมล (สำหรับติดต่อ)</label>
+              <div class="relative">
+                <i class="fa-regular fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"></i>
+                <input type="email" id="facultyEmail" placeholder="example@skru.ac.th"
+                       class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors">
+              </div>
+            </div>
+
+            <!-- Author / Creator Role -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">บทบาทในผลงาน <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <select id="authorRole" required class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 pr-7 text-xs text-slate-700 font-medium focus:outline-none focus:border-purple-600 focus:bg-white">
+                  <option value="ผู้นิพนธ์หลัก (First Author / Lead Creator)">ผู้นิพนธ์หลัก (First Author / Lead Creator)</option>
+                  <option value="ผู้นิพนธ์ประสานงาน (Corresponding Author)">ผู้นิพนธ์ประสานงาน (Corresponding Author)</option>
+                  <option value="ผู้ร่วมวิจัย / ผู้ร่วมสร้างสรรค์ (Co-Author)">ผู้ร่วมวิจัย / ผู้ร่วมสร้างสรรค์ (Co-Author)</option>
+                  <option value="ที่ปรึกษาโครงการ / ผู้ประดิษฐ์ร่วม">ที่ปรึกษาโครงการ / ผู้ประดิษฐ์ร่วม</option>
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+              </div>
+            </div>
+
+            <!-- Co-Authors / Co-Creators -->
+            <div class="lg:col-span-2 space-y-1.5">
+              <label class="block font-bold text-slate-700">
+                ผู้ร่วมจัดทำทั้งหมด (Co-Authors / Contributors)
+              </label>
+              <input type="text" id="coAuthors" placeholder="ระบุชื่อผู้ร่วมผลงานทั้งหมด คั่นด้วยเครื่องหมายจุลภาค (,)"
+                     class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors">
+            </div>
+          </div>
+        </div>
+          <!-- Radio Switcher: 4 Categories -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="workCategory" value="งานวิจัย" checked onchange="handleCategoryChange()" class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border-2 border-slate-200 peer-checked:border-purple-700 peer-checked:bg-purple-50/50 transition-all flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-base flex-shrink-0">
+                  <i class="fa-solid fa-microscope"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 text-xs">1. งานวิจัย (Research)</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">บทความวิจัยตีพิมพ์ในวารสารระดับชาติ/นานาชาติ, รายงานวิจัยฉบับสมบูรณ์</p>
+                </div>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="workCategory" value="งานสร้างสรรค์" onchange="handleCategoryChange()" class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border-2 border-slate-200 peer-checked:border-purple-700 peer-checked:bg-purple-50/50 transition-all flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-base flex-shrink-0">
+                  <i class="fa-solid fa-lightbulb"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 text-xs">2. งานสร้างสรรค์ (Creative)</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">นวัตกรรมการพยาบาล, โมเดลสุขภาพชุมชน, สื่อมัลติมีเดีย, สิ่งประดิษฐ์</p>
+                </div>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="workCategory" value="ทรัพย์สินทางปัญญา" onchange="handleCategoryChange()" class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border-2 border-slate-200 peer-checked:border-purple-700 peer-checked:bg-purple-50/50 transition-all flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-base flex-shrink-0">
+                  <i class="fa-solid fa-certificate"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 text-xs">3. ทรัพย์สินทางปัญญา (IP)</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">สิทธิบัตรการประดิษฐ์, อนุสิทธิบัตร, สิทธิบัตรออกแบบ, ลิขสิทธิ์</p>
+                </div>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="workCategory" value="หนังสือ/ตำรา" onchange="handleCategoryChange()" class="peer sr-only">
+              <div class="p-3.5 rounded-2xl border-2 border-slate-200 peer-checked:border-purple-700 peer-checked:bg-purple-50/50 transition-all flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-base flex-shrink-0">
+                  <i class="fa-solid fa-book"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 text-xs">4. หนังสือ/ตำรา (Books)</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">ตำรา, หนังสือวิชาการ, คู่มือปฏิบัติการพยาบาล, เอกสารคำสอน</p>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- STEP 2.1: Execution Status for the selected work -->
+          <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-200 text-purple-900 flex items-center justify-center text-xs font-extrabold flex-shrink-0">2.1</span>
+                <div>
+                  <span class="text-xs font-bold text-slate-900">สอบถามสถานะการดำเนินงานของผลงานนี้:</span>
+                  <p class="text-[11px] text-slate-500">เลือก "อยู่ระหว่างการดำเนินการ" หากผลงานอยู่ระหว่างจัดทำ/รอผลพิจารณา (รายละเอียดผลงานจะไม่บังคับกรอก)</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 text-xs flex-shrink-0">
+                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-white border-purple-300 text-purple-900 shadow-2xs" id="labelStatusCompleted">
+                  <input type="radio" name="executionStatus" value="สำเร็จแล้ว" checked onchange="handleExecutionStatusChange()" class="text-purple-700 focus:ring-purple-500">
+                  <i class="fa-solid fa-circle-check text-emerald-600"></i> สำเร็จแล้ว / เผยแพร่แล้ว
+                </label>
+                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-white border-slate-200 text-slate-600 shadow-2xs" id="labelStatusInProgress">
+                  <input type="radio" name="executionStatus" value="กำลังดำเนินการ" onchange="handleExecutionStatusChange()" class="text-purple-700 focus:ring-purple-500">
+                  <i class="fa-solid fa-hourglass-half text-amber-500"></i> อยู่ระหว่างการดำเนินการ (In-Progress)
+                </label>
+              </div>
+            </div>
+
+            <!-- In-Progress Milestones (Shown only when 'กำลังดำเนินการ' is selected) -->
+            <div id="sectionInProgressFields" class="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 space-y-3 hidden">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+                  <i class="fa-solid fa-bars-progress text-amber-600"></i>
+                  <span>รายละเอียดผลงานที่กำลังดำเนินการอยู่ (In-Progress Milestones)</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">
+                  สถานะ: กำลังดำเนินการ
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <!-- Stage of progress -->
+                <div class="space-y-1">
+                  <label class="font-bold text-slate-700">ขั้นตอนการดำเนินงานปัจจุบัน <span class="text-rose-500">*</span></label>
+                  <div class="relative">
+                    <select id="inProgressStage" class="w-full appearance-none bg-white border border-amber-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-amber-600">
+                      <option value="อยู่ระหว่างเก็บรวบรวมข้อมูล/ทดลอง">อยู่ระหว่างเก็บรวบรวมข้อมูล / การทดลอง</option>
+                      <option value="อยู่ระหว่างวิเคราะห์ข้อมูล/เขียนร่างรายงาน">อยู่ระหว่างวิเคราะห์ข้อมูล / เขียนร่างผลงาน</option>
+                      <option value="ส่งบทความแล้ว (Under Review/รอผลพิจารณา)">ส่งบทความ/ยื่นขอแล้ว (Under Review / รอผล)</option>
+                      <option value="อยู่ระหว่างปรับปรุงแก้ไขตามผู้ทรงคุณวุฒิ">อยู่ระหว่างปรับปรุงแก้ไขตามข้อเสนอแนะ</option>
+                      <option value="ได้รับการตอบรับแล้ว (Accepted/In-press)">ได้รับการตอบรับแล้ว (Accepted / In-press รอเผยแพร่)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                  </div>
+                </div>
+
+                <!-- Estimated Percentage -->
+                <div class="space-y-1">
+                  <label class="font-bold text-slate-700">ความก้าวหน้าโดยประมาณ (%)</label>
+                  <div class="flex items-center gap-2">
+                    <input type="range" id="inProgressPercent" min="10" max="95" step="5" value="50" oninput="document.getElementById('percentVal').textContent = this.value + '%'" class="w-full accent-amber-600 cursor-pointer">
+                    <span id="percentVal" class="font-extrabold text-amber-800 w-10 text-right">50%</span>
+                  </div>
+                </div>
+
+                <!-- Expected Completion Year / Month -->
+                <div class="space-y-1">
+                  <label class="font-bold text-slate-700">คาดว่าจะเสร็จสิ้น/ตีพิมพ์/ยื่นจด (เดือน/ปี)</label>
+                  <input type="text" id="inProgressExpectedDate" placeholder="เช่น ธันวาคม 2567 หรือ ไตรมาส 2/2568"
+                         class="w-full px-3 py-2 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-600 text-xs">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bilingual Work Title Fields -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700 text-xs" id="workTitleThLabel">
+                ชื่อผลงานวิจัย (ภาษาไทย) <span class="text-rose-500">*</span>
+              </label>
+              <textarea id="workTitleTh" required rows="2" placeholder="กรอกชื่อผลงานวิชาการภาษาไทย..."
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors"></textarea>
+            </div>
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700 text-xs" id="workTitleEnLabel">
+                ชื่อผลงานวิจัย (ภาษาอังกฤษ)
+              </label>
+              <textarea id="workTitleEn" rows="2" placeholder="กรอกชื่อผลงานวิชาการภาษาอังกฤษ (ถ้ามี)..."
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors"></textarea>
+            </div>
+          </div>
+
+          <!-- Dynamic Field Notice Banner for In-Progress -->
+          <div id="inProgressOptionalNotice" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-center gap-2 hidden">
+            <i class="fa-solid fa-circle-info text-amber-600"></i>
+            <span><strong>หมายเหตุ:</strong> เนื่องจากผลงานนี้อยู่ระหว่างการดำเนินการ รายละเอียดผลงานด้านล่างนี้<strong>ไม่บังคับกรอก (สามารถระบุเท่าที่มีข้อมูลได้)</strong></span>
+          </div>
+
+          <!-- DYNAMIC FIELDS CONTAINER -->
+          
+          <!-- Category 1: งานวิจัย (Research Specifics) -->
+          <div id="fieldsResearch" class="space-y-4 p-4 rounded-xl bg-purple-50/30 border border-purple-100 text-xs">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-purple-900 font-bold">
+                <i class="fa-solid fa-book-journal-whills"></i>
+                <span>รายละเอียดเฉพาะสำหรับงานวิจัย</span>
+              </div>
+              <span id="researchOptionalBadge" class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-md hidden">
+                ไม่บังคับกรอก (ระบุเท่าที่มี)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <!-- Journal Name -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ชื่อวารสาร / แหล่งตีพิมพ์ <span id="starResJournal" class="text-rose-500 font-bold">*</span>
+                </label>
+                <input type="text" id="resJournal" required placeholder="เช่น International Journal of Nursing Sciences"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600">
+              </div>
+
+              <!-- Database (Added ACI) -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ฐานข้อมูล <span id="starResDatabase" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="resDatabase" required onchange="handleResDbChange()" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-purple-600">
+                    <option value="Scopus">Scopus</option>
+                    <option value="Web of Science">Web of Science</option>
+                    <option value="ACI">ACI (ASEAN Citation Index)</option>
+                    <option value="TCI">TCI</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Quality Level / ระดับคุณภาพ: [Q1] [Q2] [Q3] [Q4] [TCI1] [TCI2] [อื่น ๆ] -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ระดับคุณภาพ <span id="starResQuartile" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="resQuartile" required class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-purple-600">
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                    <option value="TCI1">TCI1</option>
+                    <option value="TCI2">TCI2</option>
+                    <option value="อื่น ๆ">อื่น ๆ</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Publication Level -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ระดับการตีพิมพ์</label>
+                <div class="relative">
+                  <select id="resLevel" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-purple-600">
+                    <option value="ระดับนานาชาติ">ระดับนานาชาติ</option>
+                    <option value="ระดับชาติ">ระดับชาติ</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Volume / Issue / Page -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ปีที่, ฉบับที่, หน้า (Vol, No, Page)</label>
+                <input type="text" id="resVolume" placeholder="เช่น Vol. 11, No. 2, pp. 145-156 หรือ อยู่ระหว่างรอพิมพ์"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600">
+              </div>
+
+              <!-- DOI / Article Link -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ลิ้งค์บทความ / DOI / ลิ้งค์ร่างผลงาน</label>
+                <input type="url" id="resArticleLink" placeholder="https://doi.org/... หรือ ลิ้งค์ Google Drive"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600">
+              </div>
+            </div>
+          </div>
+
+          <!-- Category 2: งานสร้างสรรค์ (Creative Works Specifics) -->
+          <div id="fieldsCreative" class="space-y-4 p-4 rounded-xl bg-amber-50/40 border border-amber-200 text-xs hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-amber-900 font-bold">
+                <i class="fa-solid fa-palette"></i>
+                <span>รายละเอียดเฉพาะสำหรับงานสร้างสรรค์ทางการพยาบาลและสุขภาพ</span>
+              </div>
+              <span id="creativeOptionalBadge" class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-md hidden">
+                ไม่บังคับกรอก (ระบุเท่าที่มี)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <!-- Creative Type -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ลักษณะงานสร้างสรรค์ <span id="starCreativeType" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="creativeType" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-amber-600">
+                    <option value="นวัตกรรมการดูแลผู้ป่วย/ผู้สูงอายุ">นวัตกรรมการดูแลผู้ป่วย/ผู้สูงอายุ</option>
+                    <option value="อุปกรณ์หรือสิ่งประดิษฐ์ทางการแพทย์">อุปกรณ์หรือสิ่งประดิษฐ์ทางการแพทย์</option>
+                    <option value="โมเดลการบริการสุขภาพชุมชน">โมเดลการบริการสุขภาพชุมชน</option>
+                    <option value="สื่อมัลติมีเดีย/แอปพลิเคชันสุขภาพ">สื่อมัลติมีเดีย/แอปพลิเคชันสุขภาพ</option>
+                    <option value="นวัตกรรมการเรียนการสอนพยาบาล">นวัตกรรมการเรียนการสอนพยาบาล</option>
+                    <option value="งานสร้างสรรค์อื่นๆ">งานสร้างสรรค์อื่นๆ</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Utilization Type -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  การนำไปใช้ประโยชน์ <span id="starCreativeUtil" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="creativeUtilization" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-amber-600">
+                    <option value="เชิงสาธารณะ / ชุมชน / สังคม">เชิงสาธารณะ / ชุมชน / สังคม</option>
+                    <option value="เชิงนโยบาย / วิชาชีพพยาบาล">เชิงนโยบาย / วิชาชีพพยาบาล</option>
+                    <option value="เชิงพาณิชย์ / ต่อสร้างมูลค่า">เชิงพาณิชย์ / ต่อสร้างมูลค่า</option>
+                    <option value="ใช้ในสถานพยาบาล / การเรียนการสอน">ใช้ในสถานพยาบาล / การเรียนการสอน</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Target Community / User Organization -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">หน่วยงาน/ชุมชน/พื้นที่ ที่นำไปใช้ประโยชน์</label>
+                <input type="text" id="creativeTarget" placeholder="เช่น รพ.สต.เกาะยอ, รพ.สงขลา, ชมรมผู้สูงอายุ"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-amber-600">
+              </div>
+
+              <!-- Presentation / Dissemination Channel -->
+              <div class="space-y-1 lg:col-span-2">
+                <label class="font-semibold text-slate-700">ช่องทางการเผยแพร่ / จัดแสดงผลงาน</label>
+                <input type="text" id="creativeDissemination" placeholder="เช่น งานประชุมวิชาการ, นิทรรศการนวัตกรรม, มหกรรมสุขภาพสงขลา"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-amber-600">
+              </div>
+
+              <!-- Creative Link / Drive -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ลิ้งค์รูปภาพ/เอกสาร/VDO ผลงาน</label>
+                <input type="url" id="creativeLink" placeholder="https://drive.google.com/... หรือ URL ชิ้นงาน"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-amber-600">
+              </div>
+            </div>
+          </div>
+
+          <!-- Category 3: ทรัพย์สินทางปัญญา (IP Specifics) -->
+          <div id="fieldsIP" class="space-y-4 p-4 rounded-xl bg-sky-50/40 border border-sky-200 text-xs hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-sky-950 font-bold">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>รายละเอียดเฉพาะสำหรับทรัพย์สินทางปัญญา (Intellectual Property)</span>
+              </div>
+              <span id="ipOptionalBadge" class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-md hidden">
+                ไม่บังคับกรอก (ระบุเท่าที่มี)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <!-- IP Type -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ประเภททรัพย์สินทางปัญญา <span id="starIpType" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="ipType" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-sky-600">
+                    <option value="อนุสิทธิบัตร (Petty Patent)">อนุสิทธิบัตร (Petty Patent)</option>
+                    <option value="สิทธิบัตรการประดิษฐ์ (Invention Patent)">สิทธิบัตรการประดิษฐ์ (Invention Patent)</option>
+                    <option value="สิทธิบัตรการออกแบบผลิตภัณฑ์ (Design Patent)">สิทธิบัตรการออกแบบผลิตภัณฑ์ (Design Patent)</option>
+                    <option value="ลิขสิทธิ์: โปรแกรมคอมพิวเตอร์/ซอฟต์แวร์">ลิขสิทธิ์: โปรแกรมคอมพิวเตอร์/ซอฟต์แวร์</option>
+                    <option value="ลิขสิทธิ์: วรรณกรรม/คู่มือ/แบบเรียน">ลิขสิทธิ์: วรรณกรรม/คู่มือ/แบบเรียน</option>
+                    <option value="ลิขสิทธิ์: โสตทัศนวัสดุ/สื่อการสอน">ลิขสิทธิ์: โสตทัศนวัสดุ/สื่อการสอน</option>
+                    <option value="ความลับทางการค้า / เครื่องหมายการค้า">ความลับทางการค้า / เครื่องหมายการค้า</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- IP Status -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  สถานะทางทรัพย์สินทางปัญญา <span id="starIpStatus" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="ipStatus" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-sky-600">
+                    <option value="ได้รับการจดทะเบียน/ขึ้นทะเบียนแล้ว">ได้รับการจดทะเบียน/ขึ้นทะเบียนแล้ว (Granted/Registered)</option>
+                    <option value="ยื่นขอจดทะเบียนแล้ว (อยู่ระหว่างพิจารณา)">ยื่นขอจดทะเบียนแล้ว (อยู่ระหว่างพิจารณา / Pending)</option>
+                    <option value="เตรียมยื่นคำขอจดทะเบียน">เตรียมยื่นคำขอจดทะเบียน (Drafting / In-process)</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Registration or Application Number -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">เลขที่คำขอ หรือ เลขที่สิทธิบัตร/ทะเบียน</label>
+                <input type="text" id="ipNumber" placeholder="เช่น คำขอเลขที่ 2303001234 หรือ เลขที่ 19854"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-600">
+              </div>
+
+              <!-- Filing Date -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">วันที่ยื่นคำขอ / วันที่ได้รับการจดทะเบียน</label>
+                <input type="date" id="ipDate" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-600">
+              </div>
+
+              <!-- Ownership / Co-holders -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ผู้ถือสิทธิร่วม (Owner)</label>
+                <input type="text" id="ipOwner" value="มหาวิทยาลัยราชภัฏสงขลา และอาจารย์ผู้ประดิษฐ์"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-600">
+              </div>
+
+              <!-- IP Document Link -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ลิ้งค์หนังสือสำคัญ/เอกสารคำขอ</label>
+                <input type="url" id="ipLink" placeholder="https://drive.google.com/... หรือ ลิ้งค์เอกสาร"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-600">
+              </div>
+            </div>
+          </div>
+
+          <!-- Category 4: หนังสือ/ตำรา (Books Specifics) -->
+          <div id="fieldsBook" class="space-y-4 p-4 rounded-xl bg-emerald-50/40 border border-emerald-200 text-xs hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-emerald-950 font-bold">
+                <i class="fa-solid fa-book-bookmark text-emerald-700"></i>
+                <span>รายละเอียดเฉพาะสำหรับหนังสือ / ตำราวิชาการ</span>
+              </div>
+              <span id="bookOptionalBadge" class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-md hidden">
+                ไม่บังคับกรอก (ระบุเท่าที่มี)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <!-- Book Type -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  ประเภทหนังสือ/ตำรา <span id="starBookType" class="text-rose-500 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <select id="bookType" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-emerald-600">
+                    <option value="ตำรา (Textbook)">ตำรา (Textbook)</option>
+                    <option value="หนังสือวิชาการ (Academic Book)">หนังสือวิชาการ (Academic Book)</option>
+                    <option value="คู่มือการพยาบาล/คู่มือปฏิบัติการ">คู่มือการพยาบาล / คู่มือปฏิบัติการ</option>
+                    <option value="บทความในหนังสือ (Book Chapter)">บทความในหนังสือ (Book Chapter)</option>
+                    <option value="เอกสารคำสอน/เอกสารประกอบการสอน">เอกสารคำสอน / เอกสารประกอบการสอน</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Publisher -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">
+                  สำนักพิมพ์ / แหล่งเผยแพร่ <span id="starBookPublisher" class="text-rose-500 font-bold">*</span>
+                </label>
+                <input type="text" id="bookPublisher" placeholder="เช่น สำนักพิมพ์ มรภ.สงขลา หรือ สำนักพิมพ์จุฬาฯ"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600">
+              </div>
+
+              <!-- ISBN -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">เลขมาตรฐานสากลประจำหนังสือ (ISBN)</label>
+                <input type="text" id="bookIsbn" placeholder="เช่น 978-616-482-120-4"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600">
+              </div>
+
+              <!-- Edition & Pages -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">พิมพ์ครั้งที่ และ จำนวนหน้า</label>
+                <input type="text" id="bookEditionPages" placeholder="เช่น พิมพ์ครั้งที่ 1 (320 หน้า)"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600">
+              </div>
+
+              <!-- Peer Review Status -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">การประเมินจากผู้ทรงคุณวุฒิ (Peer Review)</label>
+                <div class="relative">
+                  <select id="bookPeerReview" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-7 text-slate-700 font-medium focus:outline-none focus:border-emerald-600">
+                    <option value="ผ่านการประเมินผู้ทรงคุณวุฒิแล้ว (Peer-Reviewed)">ผ่านการประเมินผู้ทรงคุณวุฒิแล้ว (Peer-Reviewed)</option>
+                    <option value="อยู่ระหว่างเสนอผู้ทรงคุณวุฒิพิจารณา">อยู่ระหว่างเสนอผู้ทรงคุณวุฒิพิจารณา</option>
+                    <option value="ไม่ได้ส่งประเมินผู้ทรงคุณวุฒิ">ไม่ได้ส่งประเมินผู้ทรงคุณวุฒิ</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                </div>
+              </div>
+
+              <!-- Book Link / Drive -->
+              <div class="space-y-1">
+                <label class="font-semibold text-slate-700">ลิ้งค์ไฟล์ปก / สารบัญ / ตัวอย่างเนื้อหา</label>
+                <input type="url" id="bookLink" placeholder="https://drive.google.com/... หรือ ลิ้งค์เอกสาร"
+                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Funding & Budget -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl cattleya-gradient text-white flex items-center justify-center text-xs font-black shadow-xs">3</span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                แหล่งทุนสนับสนุนและงบประมาณ (Funding Information)
+              </h3>
+              <p class="text-[11px] text-slate-500">ข้อมูลทุนอุดหนุนการวิจัยและพัฒนาผลงาน</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <!-- Grant Type -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">ประเภทแหล่งทุน <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <select id="grantType" required class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 pr-7 text-xs text-slate-700 font-medium focus:outline-none focus:border-purple-600 focus:bg-white">
+                  <option value="ทุนภายใน">🏛️ ทุนภายใน มรภ.สงขลา (กองทุนวิจัย/คณะ)</option>
+                  <option value="ทุนภายนอก">🌍 ทุนภายนอกหน่วยงาน (วช./สสส./บพท./สป.อว.)</option>
+                  <option value="ไม่ได้รับทุน">❌ ทุนส่วนตัว / ไม่ได้รับทุนอุดหนุน</option>
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+              </div>
+            </div>
+
+            <!-- Grant Source Name -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">ชื่อแหล่งทุน / หน่วยงานที่ให้ทุน</label>
+              <input type="text" id="grantSource" placeholder="เช่น กองทุนสนับสนุนการวิจัย มรภ.สงขลา, วช."
+                     class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors">
+            </div>
+
+            <!-- Budget (THB) -->
+            <div class="space-y-1.5">
+              <label class="block font-bold text-slate-700">งบประมาณสนับสนุน (บาท)</label>
+              <div class="relative">
+                <input type="number" id="budget" min="0" step="500" placeholder="0"
+                       class="w-full pl-7 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white text-xs transition-colors">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">฿</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Note & Submit Bar -->
+        <div class="pt-4 border-t border-purple-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+            ข้อมูลจะถูกบันทึกและจัดประเภทสถานะ (สำเร็จแล้ว / กำลังดำเนินการ) ไปยัง Sheet กลางทันที
+          </p>
+
+          <div class="flex items-center gap-2">
+            <button type="reset" onclick="setTimeout(handleExecutionStatusChange, 50)" class="px-4 py-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
+              ล้างแบบฟอร์ม
+            </button>
+            <button type="submit" id="submitBtn" class="px-6 py-2.5 text-xs font-bold rounded-xl cattleya-gradient text-white shadow-md hover:opacity-95 transition-all inline-flex items-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>บันทึกเข้า Sheet กลาง</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id="view-sheet" class="space-y-4 hidden">
+      
+      <!-- Sheet Controls Card -->
+      <div class="bg-white rounded-2xl border border-purple-100 p-4 shadow-xs">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          
+          <!-- Search in Sheet -->
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="sheetSearchInput" oninput="applySheetFilters()" placeholder="ค้นหาใน Sheet: ชื่อผลงาน, ชื่ออาจารย์, กลุ่มสาขาวิชา, ฐานข้อมูล (ACI/Scopus/TCI), ทรัพย์สินทางปัญญา..."
+                   class="w-full pl-9 pr-4 py-2 text-xs bg-purple-50/30 border border-purple-100 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white transition-colors">
+          </div>
+
+          <!-- Quick Filters for Sheet -->
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <!-- Execution Status Filter -->
+            <select id="sheetStatusFilter" onchange="applySheetFilters()" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-3 py-2 font-bold focus:outline-none focus:border-purple-600">
+              <option value="ALL">สถานะทั้งหมด (สำเร็จ + กำลังดำเนินการ)</option>
+              <option value="สำเร็จแล้ว">✅ สำเร็จแล้ว / เผยแพร่แล้ว</option>
+              <option value="กำลังดำเนินการ">⏳ กำลังดำเนินการอยู่ (In-Progress)</option>
+            </select>
+
+            <!-- Category Filter -->
+            <select id="sheetCategoryFilter" onchange="applySheetFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-purple-600">
+              <option value="ALL">ทุกประเภทผลงาน (วิจัย/สร้างสรรค์/IP/ตำรา)</option>
+              <option value="งานวิจัย">🔬 งานวิจัย (Research)</option>
+              <option value="งานสร้างสรรค์">🎨 งานสร้างสรรค์ (Creative)</option>
+              <option value="ทรัพย์สินทางปัญญา">💡 ทรัพย์สินทางปัญญา (IP)</option>
+              <option value="หนังสือ/ตำรา">📚 หนังสือ/ตำรา (Books)</option>
+            </select>
+
+            <!-- Department Filter -->
+            <select id="sheetDeptFilter" onchange="applySheetFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-purple-600">
+              <option value="ALL">ทุกกลุ่มสาขาวิชา</option>
+              <option value="การพยาบาลผู้ใหญ่และผู้สูงอายุ">การพยาบาลผู้ใหญ่และผู้สูงอายุ</option>
+              <option value="การพยาบาลมารดา ทารก และการผดุงครรภ์">การพยาบาลมารดา ทารก และการผดุงครรภ์</option>
+              <option value="การพยาบาลเด็กและวัยรุ่น">การพยาบาลเด็กและวัยรุ่น</option>
+              <option value="การพยาบาลสุขภาพจิตและจิตเวช">การพยาบาลสุขภาพจิตและจิตเวช</option>
+              <option value="การพยาบาลอนามัยชุมชน">การพยาบาลอนามัยชุมชน</option>
+            </select>
+
+            <!-- Year Filter -->
+            <select id="sheetYearFilter" onchange="applySheetFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-purple-600">
+              <option value="ALL">ทุกปี พ.ศ.</option>
+              <option value="2570">ปี 2570</option>
+              <option value="2569">ปี 2569</option>
+              <option value="2568">ปี 2568</option>
+              <option value="2567">ปี 2567</option>
+              <option value="2566">ปี 2566</option>
+              <option value="2565">ปี 2565</option>
+              <option value="2564">ปี 2564</option>
+            </select>
+
+            <!-- Sync Button -->
+            <button onclick="syncWithGoogleSheet()" class="px-3 py-2 bg-purple-50 text-purple-900 border border-purple-200 rounded-xl font-bold hover:bg-purple-100 transition-colors flex items-center gap-1.5" title="ส่งข้อมูลไปยัง Google Sheets ปลายทาง">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Sync เข้า Sheet</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sheet Container -->
+      <div class="bg-white rounded-2xl border border-purple-100 shadow-xs overflow-hidden">
+        <div class="p-3.5 sm:p-4 bg-purple-50/50 border-b border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <h3 class="font-extrabold text-slate-900 text-xs sm:text-sm">
+              ตารางข้อมูลผลงานวิชาการรวม (Aggregated Faculty Sheet)
+            </h3>
+            <span class="text-xs text-purple-700 font-bold bg-purple-100 px-2 py-0.5 rounded-md" id="sheetFilteredCount">
+              0 รายการ
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <button onclick="exportSheetToExcel()" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-purple-700 font-semibold shadow-2xs">
+              <i class="fa-solid fa-download mr-1 text-emerald-600"></i> Excel (.xlsx)
+            </button>
+            <button onclick="exportSheetToCSV()" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-purple-700 font-semibold shadow-2xs">
+              <i class="fa-solid fa-file-csv mr-1 text-sky-600"></i> CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Spreadsheet Table Body -->
+        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100/80 sticky top-0 z-10 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                <th class="py-2.5 px-3 min-w-[90px]">ปี พ.ศ.</th>
+                <th class="py-2.5 px-3 min-w-[120px]">สถานะดำเนินงาน</th>
+                <th class="py-2.5 px-3 min-w-[130px]">ประเภทผลงาน</th>
+                <th class="py-2.5 px-3 min-w-[280px]">ชื่อเรื่อง / ชิ้นงานวิชาการ</th>
+                <th class="py-2.5 px-3 min-w-[180px]">อาจารย์ผู้รายงาน</th>
+                <th class="py-2.5 px-3 min-w-[160px]">กลุ่มสาขาวิชา</th>
+                <th class="py-2.5 px-3 min-w-[170px]">รายละเอียด/ระดับคุณภาพ</th>
+                <th class="py-2.5 px-3 min-w-[130px]">แหล่งทุน/งบประมาณ</th>
+                <th class="py-2.5 px-3 text-center min-w-[90px]">ลิ้งค์ผลงาน</th>
+                <th class="py-2.5 px-2 text-center w-14">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="sheetTableBody" class="divide-y divide-purple-50 text-slate-700">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-summary" class="space-y-5 hidden">
+      <!-- 6 Top KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
+        <!-- Total Works -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-purple-900 uppercase">ผลงานวิชาการรวม</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center">
+              <i class="fa-solid fa-layer-group text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiTotalAll" class="text-2xl font-black text-slate-900">0</span>
+            <span class="text-xs text-slate-500">รายการ</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1" id="kpiLecturerCount">จากอาจารย์ผู้รายงาน 0 ท่าน</p>
+        </div>
+
+        <!-- In-Progress KPI -->
+        <div class="bg-white rounded-2xl p-4 border border-amber-200 shadow-xs bg-amber-50/20">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-900 uppercase">กำลังดำเนินการ</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+              <i class="fa-solid fa-hourglass-half text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiInProgressTotal" class="text-2xl font-black text-amber-700">0</span>
+            <span class="text-xs text-slate-500">รายการ</span>
+            <span id="kpiInProgressPct" class="text-xs font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded ml-auto">0%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">อยู่ระหว่างจัดทำ/รอตีพิมพ์</p>
+        </div>
+
+        <!-- Research Works -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-purple-800 uppercase">1. งานวิจัย</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+              <i class="fa-solid fa-microscope text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiResearchCount" class="text-2xl font-black text-purple-800">0</span>
+            <span class="text-xs text-slate-500">เรื่อง</span>
+            <span id="kpiResearchPct" class="text-xs font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded ml-auto">0%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1" id="kpiResearchDetail">Scopus/WoS/ACI/TCI</p>
+        </div>
+
+        <!-- Creative Works -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-800 uppercase">2. งานสร้างสรรค์</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+              <i class="fa-solid fa-lightbulb text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiCreativeCount" class="text-2xl font-black text-amber-700">0</span>
+            <span class="text-xs text-slate-500">ชิ้นงาน</span>
+            <span id="kpiCreativePct" class="text-xs font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded ml-auto">0%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">นวัตกรรม/สิ่งประดิษฐ์</p>
+        </div>
+
+        <!-- Intellectual Property -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-sky-800 uppercase">3. ทรัพย์สินทางปัญญา</span>
+            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
+              <i class="fa-solid fa-certificate text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiIPCount" class="text-2xl font-black text-sky-700">0</span>
+            <span class="text-xs text-slate-500">รายการ</span>
+            <span id="kpiIPPct" class="text-xs font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded ml-auto">0%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1" id="kpiIPDetail">สิทธิบัตร/ลิขสิทธิ์</p>
+        </div>
+
+        <!-- Books / Textbooks -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-100 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-emerald-800 uppercase">4. หนังสือ/ตำรา</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <i class="fa-solid fa-book text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="kpiBookCount" class="text-2xl font-black text-emerald-700">0</span>
+            <span class="text-xs text-slate-500">เล่ม</span>
+            <span id="kpiBookPct" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">0%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">ตำรา/หนังสือ/คู่มือ</p>
+        </div>
+      </div>
+
+      <!-- Breakdown by Department and Years -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Department Summary -->
+        <div class="bg-white rounded-2xl border border-purple-100 p-5 shadow-xs">
+          <h4 class="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-hospital-user text-purple-700"></i>
+            สรุปการส่งผลงานตาม 5 กลุ่มสาขาวิชา
+          </h4>
+          <div id="deptSummaryList" class="space-y-2.5 text-xs">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Funding & Grants Summary -->
+        <div class="bg-white rounded-2xl border border-purple-100 p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h4 class="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-hand-holding-dollar text-purple-700"></i>
+              สรุปงบประมาณสนับสนุนตามประเภททุน
+            </h4>
+            <div id="grantSummaryContainer" class="space-y-3 text-xs">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 mt-4 text-[11px] text-purple-900">
+            <i class="fa-solid fa-info-circle text-purple-700 mr-1"></i>
+            ข้อมูลพร้อมอัปเดตไปยังระบบประกันคุณภาพและส่งต่อให้งานวิจัยและวิรัชกิจ คณะพยาบาลศาสตร์ มรภ.สงขลา
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Google Sheets Integration Config Modal -->
+  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+            <i class="fa-solid fa-table-cells text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">การเชื่อมต่อ Google Sheets กลาง</h3>
+            <p class="text-[11px] text-slate-500">ให้อาจารย์กรอกแล้วข้อมูลถูกส่งไปบันทึกลงใน Google Sheet อัตโนมัติ</p>
+          </div>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">
+            Google Apps Script Web App URL (Endpoint)
+          </label>
+          <input type="url" id="googleSheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec"
+                 class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 text-xs">
+          <p class="text-[11px] text-slate-400 mt-1">
+            * หากยังไม่มี URL สามารถบันทึกในเบราว์เซอร์และกด <strong>"ดาวน์โหลด Sheet (.xlsx)"</strong> ได้ทันที
+          </p>
+        </div>
+
+        <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 space-y-2">
+          <div class="flex items-center justify-between font-bold text-purple-900">
+            <span><i class="fa-solid fa-code mr-1"></i> โค้ด Google Apps Script (doPost) สำหรับวางใน Sheet:</span>
+            <button onclick="copyAppsScriptCode()" class="text-[11px] text-purple-700 hover:underline">
+              <i class="fa-regular fa-copy"></i> คัดลอกโค้ด
+            </button>
+          </div>
+          <pre id="appsScriptSnippet" class="p-2.5 bg-slate-900 text-emerald-300 rounded-lg text-[10px] overflow-x-auto max-h-36 font-mono leading-relaxed">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    new Date(),
+    data.executionStatus, // สำเร็จแล้ว หรือ กำลังดำเนินการ
+    data.workYear,
+    data.workCategory,
+    data.workTitle,
+    data.facultyName,
+    data.department,
+    data.authorRole,
+    data.coAuthors,
+    data.detail1, // Journal / CreativeType / IPType
+    data.detail2, // Database-QualityLevel / Utilization / IPStatus
+    data.grantType,
+    data.grantSource,
+    data.budget,
+    data.inProgressInfo || '-',
+    data.link
+  ]);
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
+        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200">
+          ยกเลิก
+        </button>
+        <button onclick="saveSheetConfig()" class="px-4 py-2 cattleya-gradient text-white font-bold rounded-xl hover:opacity-90">
+          บันทึกการตั้งค่า
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-start justify-between pb-3 border-b border-slate-100">
+        <div id="modalBadgeContainer" class="flex items-center gap-2 flex-wrap"></div>
+        <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div id="modalBody" class="space-y-3 text-xs"></div>
+      <div class="pt-3 border-t border-slate-100 flex justify-end">
+        <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-200">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 ease-out translate-y-2 opacity-0">
+    <div id="toastContent" class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold bg-white border-purple-200 text-slate-800">
+      <i id="toastIcon" class="fa-solid fa-check-circle text-purple-700 text-base"></i>
+      <span id="toastMessage">แจ้งเตือน</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-purple-100 py-4 text-center text-xs text-slate-500 mt-auto">
+    <p class="font-medium text-slate-700">คณะพยาบาลศาสตร์ มหาวิทยาลัยราชภัฏสงขลา (SKRU Nursing)</p>
+    <p class="text-[11px] text-slate-400 mt-0.5">ระบบสำรวจและรวบรวมข้อมูลผลงานวิชาการ: งานวิจัย (Scopus/WoS/ACI/TCI), งานสร้างสรรค์, ทรัพย์สินทางปัญญา และผลงานที่กำลังดำเนินการ</p>
+  </footer>
+
+  <script>
+    // Initial Seed Data: Realistic representation of academic works from SKRU Nursing Faculty
+    const initialRecords = [
+      {
+        id: 101,
+        executionStatus: "สำเร็จแล้ว",
+        workYear: "2567",
+        workCategory: "งานวิจัย",
+        workTitleTh: "การพัฒนารูปแบบการพยาบาลทางไกลในชุมชนสำหรับผู้สูงอายุโรคเบาหวานชนิดที่ 2 ในภาคใต้ของประเทศไทย",
+        workTitleEn: "Development of a Community-Based Tele-Nursing Care Model for Elderly Patients with Type 2 Diabetes in Southern Thailand",
+        workTitle: "การพัฒนารูปแบบการพยาบาลทางไกลในชุมชนสำหรับผู้สูงอายุโรคเบาหวานชนิดที่ 2 ในภาคใต้ของประเทศไทย (Development of a Community-Based Tele-Nursing Care Model for Elderly Patients with Type 2 Diabetes in Southern Thailand)",
+        facultyName: "ผศ.ดร.พัชรี สุวรรณรัตน์",
+        facultyEmail: "patcharee.su@skru.ac.th",
+        department: "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "ดร.วาสนา พรหมเพ็ชร",
+        journal: "International Journal of Nursing Sciences",
+        database: "Scopus",
+        quartile: "Q1",
+        level: "ระดับนานาชาติ",
+        volume: "Vol. 11, No. 1, pp. 24-33",
+        grantType: "ทุนภายนอก",
+        grantSource: "สำนักงานการวิจัยแห่งชาติ (วช.)",
+        budget: 250000,
+        link: "https://doi.org/10.1016/j.ijnss.2024.01.008",
+        createdAt: "2024-02-15 09:30"
+      },
+      {
+        id: 102,
+        executionStatus: "สำเร็จแล้ว",
+        workYear: "2567",
+        workCategory: "งานสร้างสรรค์",
+        workTitleTh: "โมเดลระบบเตือนภัยและการจัดท่านอนเพื่อป้องกันแผลกดทับในผู้สูงอายุติดเตียงผ่านแอปพลิเคชัน Line Bot ชุมชน",
+        workTitleEn: "Community Line Bot Model for Pressure Injury Prevention in Bedridden Elderly",
+        workTitle: "โมเดลระบบเตือนภัยและการจัดท่านอนเพื่อป้องกันแผลกดทับในผู้สูงอายุติดเตียงผ่านแอปพลิเคชัน Line Bot ชุมชน",
+        facultyName: "ดร.วาสนา พรหมเพ็ชร",
+        facultyEmail: "wassana.p@skru.ac.th",
+        department: "การพยาบาลอนามัยชุมชน",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "ผศ.ดร.พัชรี สุวรรณรัตน์, พยาบาลวิชาชีพ รพ.สต.เกาะยอ",
+        creativeType: "นวัตกรรมการดูแลผู้ป่วย/ผู้สูงอายุ",
+        creativeUtilization: "เชิงสาธารณะ / ชุมชน / สังคม",
+        creativeTarget: "รพ.สต.เกาะยอ และชุมชนผู้สูงอายุ อ.เมือง จ.สงขลา",
+        creativeDissemination: "งานมหกรรมนวัตกรรมสุขภาพชุมชนภาคใต้ มรภ.สงขลา",
+        grantType: "ทุนภายนอก",
+        grantSource: "สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ (สสส.)",
+        budget: 180000,
+        link: "https://drive.google.com/sample-innovation-video",
+        createdAt: "2024-03-20 14:10"
+      },
+      {
+        id: 103,
+        executionStatus: "สำเร็จแล้ว",
+        workYear: "2567",
+        workCategory: "หนังสือ/ตำรา",
+        workTitleTh: "การพยาบาลผู้สูงอายุในภาวะเจ็บป่วยเรื้อรัง: จากหลักฐานเชิงประจักษ์สู่การปฏิบัติการพยาบาลชุมชน",
+        workTitleEn: "Gerontological Nursing in Chronic Illness: From Evidence-Based to Community Practice",
+        workTitle: "การพยาบาลผู้สูงอายุในภาวะเจ็บป่วยเรื้อรัง: จากหลักฐานเชิงประจักษ์สู่การปฏิบัติการพยาบาลชุมชน (Gerontological Nursing in Chronic Illness)",
+        facultyName: "ผศ.ดร.พัชรี สุวรรณรัตน์",
+        facultyEmail: "patcharee.su@skru.ac.th",
+        department: "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "ดร.วาสนา พรหมเพ็ชร",
+        bookType: "ตำรา (Textbook)",
+        bookPublisher: "สำนักพิมพ์มหาวิทยาลัยราชภัฏสงขลา",
+        bookIsbn: "978-616-482-120-4",
+        bookEditionPages: "พิมพ์ครั้งที่ 1 (340 หน้า)",
+        bookPeerReview: "ผ่านการประเมินผู้ทรงคุณวุฒิแล้ว (Peer-Reviewed)",
+        grantType: "ทุนภายใน",
+        grantSource: "กองทุนสนับสนุนการวิจัย มรภ.สงขลา",
+        budget: 45000,
+        link: "https://drive.google.com/sample-textbook-preview",
+        createdAt: "2024-04-05 11:30"
+      },
+      {
+        id: 104,
+        executionStatus: "กำลังดำเนินการ",
+        workYear: "2567",
+        workCategory: "งานวิจัย",
+        workTitleTh: "สมรรถนะการพยาบาลแบบประคับประคองในชุมชนของพยาบาลปฐมภูมิในพื้นที่ชายแดนอาเซียน: การวิจัยแบบผสานวิธี",
+        workTitleEn: "Community-Based Palliative Care Competencies Among Primary Care Nurses in ASEAN Border Regions: A Mixed Methods Study",
+        workTitle: "สมรรถนะการพยาบาลแบบประคับประคองในชุมชนของพยาบาลปฐมภูมิในพื้นที่ชายแดนอาเซียน (Community-Based Palliative Care Competencies)",
+        facultyName: "ผศ.ดร.พัชรี สุวรรณรัตน์",
+        facultyEmail: "patcharee.su@skru.ac.th",
+        department: "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "ผศ.กมลทิพย์ ชัยชนะ, ดร.วาสนา พรหมเพ็ชร",
+        journal: "Pacific Rim International Journal of Nursing Research",
+        database: "ACI",
+        quartile: "Q2",
+        level: "ระดับนานาชาติ",
+        volume: "อยู่ระหว่างรอบทความตีพิมพ์",
+        grantType: "ทุนภายนอก",
+        grantSource: "หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่ (บพท.)",
+        budget: 280000,
+        inProgressStage: "ส่งบทความแล้ว (Under Review/รอผลพิจารณา)",
+        inProgressPercent: 75,
+        inProgressExpectedDate: "พฤศจิกายน 2567",
+        link: "https://drive.google.com/sample-draft-manuscript",
+        createdAt: "2024-05-18 10:15"
+      },
+      {
+        id: 105,
+        executionStatus: "กำลังดำเนินการ",
+        workYear: "2567",
+        workCategory: "ทรัพย์สินทางปัญญา",
+        workTitleTh: "อุปกรณ์พยุงข้อเท้าปรับระดับแรงกดสำหรับการฟื้นฟูสมรรถภาพผู้ป่วยโรคหลอดเลือดสมองในชุมชน",
+        workTitleEn: "Adjustable Compression Ankle Support for Community Stroke Rehabilitation",
+        workTitle: "อุปกรณ์พยุงข้อเท้าปรับระดับแรงกดสำหรับการฟื้นฟูสมรรถภาพผู้ป่วยโรคหลอดเลือดสมองในชุมชน",
+        facultyName: "ผศ.มาลี เจริญโชค",
+        facultyEmail: "malee.ch@skru.ac.th",
+        department: "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "อาจารย์นุสรา กาญจนโรจน์, คณะวิศวกรรมศาสตร์",
+        ipType: "อนุสิทธิบัตร (Petty Patent)",
+        ipStatus: "ยื่นขอจดทะเบียนแล้ว (อยู่ระหว่างพิจารณา)",
+        ipNumber: "คำขอเลขที่ 2403000892",
+        ipDate: "2024-04-10",
+        ipOwner: "มหาวิทยาลัยราชภัฏสงขลา",
+        grantType: "ทุนภายใน",
+        grantSource: "กองทุนสนับสนุนการวิจัย มรภ.สงขลา",
+        budget: 65000,
+        inProgressStage: "ส่งบทความ/ยื่นขอ/ส่งโรงพิมพ์แล้ว (Under Review/รอผล)",
+        inProgressPercent: 80,
+        inProgressExpectedDate: "ธันวาคม 2567",
+        link: "https://drive.google.com/sample-patent-file",
+        createdAt: "2024-04-12 11:20"
+      },
+      {
+        id: 106,
+        executionStatus: "กำลังดำเนินการ",
+        workYear: "2567",
+        workCategory: "หนังสือ/ตำรา",
+        workTitleTh: "คู่มือการพยาบาลสุขภาพจิตและการบำบัดทางความคิดและพฤติกรรมสำหรับพยาบาลวิชาชีพชุมชน",
+        workTitleEn: "Manual of Mental Health Nursing and CBT for Community Nurses",
+        workTitle: "คู่มือการพยาบาลสุขภาพจิตและการบำบัดทางความคิดและพฤติกรรมสำหรับพยาบาลวิชาชีพชุมชน",
+        facultyName: "ผศ.กมลทิพย์ ชัยชนะ",
+        facultyEmail: "kamolthip.ch@skru.ac.th",
+        department: "การพยาบาลสุขภาพจิตและจิตเวช",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "อาจารย์ชลธิชา สถิตย์พงษ์",
+        bookType: "คู่มือการพยาบาล/คู่มือปฏิบัติการ",
+        bookPublisher: "คณะพยาบาลศาสตร์ มหาวิทยาลัยราชภัฏสงขลา",
+        bookIsbn: "-",
+        bookEditionPages: "ร่างฉบับสมบูรณ์ (180 หน้า)",
+        bookPeerReview: "อยู่ระหว่างเสนอผู้ทรงคุณวุฒิพิจารณา",
+        grantType: "ทุนภายใน",
+        grantSource: "กองทุนสนับสนุนการวิจัย มรภ.สงขลา",
+        budget: 30000,
+        inProgressStage: "อยู่ระหว่างวิเคราะห์ข้อมูล/เขียนร่างรายงาน/เรียบเรียง",
+        inProgressPercent: 65,
+        inProgressExpectedDate: "มกราคม 2568",
+        link: "https://drive.google.com/sample-manual-draft",
+        createdAt: "2024-06-01 09:15"
+      },
+      {
+        id: 107,
+        executionStatus: "สำเร็จแล้ว",
+        workYear: "2566",
+        workCategory: "งานวิจัย",
+        workTitleTh: "สมรรถนะเชิงวัฒนธรรมในการพยาบาลแบบประคับประคองในบุคลากรสุขภาพในชุมชนพหุวัฒนธรรมชายแดนใต้",
+        workTitleEn: "Cultural Competence in Palliative Care Nursing among Healthcare Providers in Multicultural Southern Border Communities",
+        workTitle: "Cultural Competence in Palliative Care Nursing among Healthcare Providers in Multicultural Southern Border Communities",
+        facultyName: "ผศ.ดร.พัชรี สุวรรณรัตน์",
+        facultyEmail: "patcharee.su@skru.ac.th",
+        department: "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        authorRole: "ผู้นิพนธ์หลัก (First Author / Lead Creator)",
+        coAuthors: "ผศ.กมลทิพย์ ชัยชนะ",
+        journal: "Journal of Transcultural Nursing",
+        database: "Web of Science",
+        quartile: "Q1",
+        level: "ระดับนานาชาติ",
+        volume: "Vol. 34, No. 5, pp. 410-419",
+        grantType: "ทุนภายนอก",
+        grantSource: "หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่ (บพท.)",
+        budget: 320000,
+        link: "https://doi.org/10.1177/10436596231189441",
+        createdAt: "2023-08-10 16:45"
+      }
+    ];
+
+    // Master state
+    let academicRecords = [...initialRecords];
+    let filteredRecords = [...academicRecords];
+    let googleSheetWebhookUrl = "https://script.google.com/macros/s/AKfycbw5KCjnHVidycWysOs-OTDoe5DRxbDCLmd6faN5JusM6Y5gWmcOqBryjo_ZXfpniFjnVQ/exec";
+
+    function handleExecutionStatusChange() {
+      const status = document.querySelector('input[name="executionStatus"]:checked').value;
+      const inProgSection = document.getElementById('sectionInProgressFields');
+      const inProgNotice = document.getElementById('inProgressOptionalNotice');
+      const labelComp = document.getElementById('labelStatusCompleted');
+      const labelProg = document.getElementById('labelStatusInProgress');
+      const yearLabel = document.getElementById('workYearLabel');
+
+      const isInProgress = (status === 'กำลังดำเนินการ');
+
+      if (isInProgress) {
+        inProgSection.classList.remove('hidden');
+        inProgNotice.classList.remove('hidden');
+        labelProg.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-amber-50 border-amber-400 text-amber-900 shadow-sm";
+        labelComp.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-white border-slate-200 text-slate-600 shadow-2xs";
+        yearLabel.innerHTML = 'ปี พ.ศ. ที่เริ่มดำเนินการ / คาดว่าจะแล้วเสร็จ <span class="text-rose-500">*</span>';
+      } else {
+        inProgSection.classList.add('hidden');
+        inProgNotice.classList.add('hidden');
+        labelComp.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-purple-50 border-purple-400 text-purple-900 shadow-sm";
+        labelProg.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-bold transition-all bg-white border-slate-200 text-slate-600 shadow-2xs";
+        yearLabel.innerHTML = 'ปี พ.ศ. ที่ดำเนินการ/ตีพิมพ์/จดทะเบียน <span class="text-rose-500">*</span>';
+      }
+
+      toggleDetailRequirement(isInProgress);
+    }
+
+    // Toggle required and star icons for category-specific fields based on In-Progress status
+    function toggleDetailRequirement(isInProgress) {
+      // 1. Research fields
+      const resJournal = document.getElementById('resJournal');
+      const resDatabase = document.getElementById('resDatabase');
+      const resQuartile = document.getElementById('resQuartile');
+      const resLevel = document.getElementById('resLevel');
+      const starResJournal = document.getElementById('starResJournal');
+      const starResDatabase = document.getElementById('starResDatabase');
+      const starResQuartile = document.getElementById('starResQuartile');
+      const starResLevel = document.getElementById('starResLevel');
+      const researchOptBadge = document.getElementById('researchOptionalBadge');
+
+      // 2. Creative fields
+      const creativeType = document.getElementById('creativeType');
+      const creativeUtil = document.getElementById('creativeUtilization');
+      const starCreativeType = document.getElementById('starCreativeType');
+      const starCreativeUtil = document.getElementById('starCreativeUtil');
+      const creativeOptBadge = document.getElementById('creativeOptionalBadge');
+
+      // 3. IP fields
+      const ipType = document.getElementById('ipType');
+      const ipStatus = document.getElementById('ipStatus');
+      const starIpType = document.getElementById('starIpType');
+      const starIpStatus = document.getElementById('starIpStatus');
+      const ipOptBadge = document.getElementById('ipOptionalBadge');
+
+      // 4. Book fields
+      const bookType = document.getElementById('bookType');
+      const bookPublisher = document.getElementById('bookPublisher');
+      const starBookType = document.getElementById('starBookType');
+      const starBookPublisher = document.getElementById('starBookPublisher');
+      const bookOptBadge = document.getElementById('bookOptionalBadge');
+
+      if (isInProgress) {
+        // Remove 'required' and hide red stars
+        if (resJournal) resJournal.required = false;
+        if (resDatabase) resDatabase.required = false;
+        if (resQuartile) resQuartile.required = false;
+        if (resLevel) resLevel.required = false;
+        if (starResJournal) starResJournal.classList.add('hidden');
+        if (starResDatabase) starResDatabase.classList.add('hidden');
+        if (starResQuartile) starResQuartile.classList.add('hidden');
+        if (starResLevel) starResLevel.classList.add('hidden');
+        if (researchOptBadge) researchOptBadge.classList.remove('hidden');
+
+        if (creativeType) creativeType.required = false;
+        if (creativeUtil) creativeUtil.required = false;
+        if (starCreativeType) starCreativeType.classList.add('hidden');
+        if (starCreativeUtil) starCreativeUtil.classList.add('hidden');
+        if (creativeOptBadge) creativeOptBadge.classList.remove('hidden');
+
+        if (ipType) ipType.required = false;
+        if (ipStatus) ipStatus.required = false;
+        if (starIpType) starIpType.classList.add('hidden');
+        if (starIpStatus) starIpStatus.classList.add('hidden');
+        if (ipOptBadge) ipOptBadge.classList.remove('hidden');
+
+        if (bookType) bookType.required = false;
+        if (bookPublisher) bookPublisher.required = false;
+        if (starBookType) starBookType.classList.add('hidden');
+        if (starBookPublisher) starBookPublisher.classList.add('hidden');
+        if (bookOptBadge) bookOptBadge.classList.remove('hidden');
+      } else {
+        // Enforce required and show red stars
+        if (resJournal) resJournal.required = true;
+        if (resDatabase) resDatabase.required = true;
+        if (resQuartile) resQuartile.required = true;
+        if (resLevel) resLevel.required = true;
+        if (starResJournal) starResJournal.classList.remove('hidden');
+        if (starResDatabase) starResDatabase.classList.remove('hidden');
+        if (starResQuartile) starResQuartile.classList.remove('hidden');
+        if (starResLevel) starResLevel.classList.remove('hidden');
+        if (researchOptBadge) researchOptBadge.classList.add('hidden');
+
+        if (creativeType) creativeType.required = true;
+        if (creativeUtil) creativeUtil.required = true;
+        if (starCreativeType) starCreativeType.classList.remove('hidden');
+        if (starCreativeUtil) starCreativeUtil.classList.remove('hidden');
+        if (creativeOptBadge) creativeOptBadge.classList.add('hidden');
+
+        if (ipType) ipType.required = true;
+        if (ipStatus) ipStatus.required = true;
+        if (starIpType) starIpType.classList.remove('hidden');
+        if (starIpStatus) starIpStatus.classList.remove('hidden');
+        if (ipOptBadge) ipOptBadge.classList.add('hidden');
+
+        if (bookType) bookType.required = true;
+        if (bookPublisher) bookPublisher.required = true;
+        if (starBookType) starBookType.classList.remove('hidden');
+        if (starBookPublisher) starBookPublisher.classList.remove('hidden');
+        if (bookOptBadge) bookOptBadge.classList.add('hidden');
+      }
+    }
+
+    function setFormToInProgress() {
+      const radio = document.querySelector('input[name="executionStatus"][value="กำลังดำเนินการ"]');
+      if (radio) {
+        radio.checked = true;
+        handleExecutionStatusChange();
+      }
+    }
+
+    function handleCategoryChange() {
+      const selectedEl = document.querySelector('input[name="workCategory"]:checked');
+      const selected = selectedEl ? selectedEl.value : 'งานวิจัย';
+      const fResearch = document.getElementById('fieldsResearch');
+      const fCreative = document.getElementById('fieldsCreative');
+      const fIP = document.getElementById('fieldsIP');
+      const fBook = document.getElementById('fieldsBook');
+      const thLabel = document.getElementById('workTitleThLabel');
+      const enLabel = document.getElementById('workTitleEnLabel');
+
+      if (fResearch) fResearch.classList.add('hidden');
+      if (fCreative) fCreative.classList.add('hidden');
+      if (fIP) fIP.classList.add('hidden');
+      if (fBook) fBook.classList.add('hidden');
+
+      if (selected === 'งานวิจัย') {
+        if (fResearch) fResearch.classList.remove('hidden');
+        if (thLabel) thLabel.innerHTML = 'ชื่อผลงานวิจัย (ภาษาไทย) <span class="text-rose-500">*</span>';
+        if (enLabel) enLabel.innerHTML = 'ชื่อผลงานวิจัย (ภาษาอังกฤษ)';
+      } else if (selected === 'งานสร้างสรรค์') {
+        if (fCreative) fCreative.classList.remove('hidden');
+        if (thLabel) thLabel.innerHTML = 'ชื่อผลงานสร้างสรรค์ / นวัตกรรม (ภาษาไทย) <span class="text-rose-500">*</span>';
+        if (enLabel) enLabel.innerHTML = 'ชื่อผลงานสร้างสรรค์ (ภาษาอังกฤษ ถ้ามี)';
+      } else if (selected === 'ทรัพย์สินทางปัญญา') {
+        if (fIP) fIP.classList.remove('hidden');
+        if (thLabel) thLabel.innerHTML = 'ชื่อผลงานทรัพย์สินทางปัญญา / สิ่งประดิษฐ์ (ภาษาไทย) <span class="text-rose-500">*</span>';
+        if (enLabel) enLabel.innerHTML = 'ชื่อทรัพย์สินทางปัญญา (ภาษาอังกฤษ ถ้ามี)';
+      } else if (selected === 'หนังสือ/ตำรา') {
+        if (fBook) fBook.classList.remove('hidden');
+        if (thLabel) thLabel.innerHTML = 'ชื่อหนังสือ / ตำราวิชาการ (ภาษาไทย) <span class="text-rose-500">*</span>';
+        if (enLabel) enLabel.innerHTML = 'ชื่อหนังสือ / ตำรา (ภาษาอังกฤษ ถ้ามี)';
+      }
+
+      // Re-apply requirement states
+      const statusRadio = document.querySelector('input[name="executionStatus"]:checked');
+      const isInProgress = statusRadio ? statusRadio.value === 'กำลังดำเนินการ' : false;
+      toggleDetailRequirement(isInProgress);
+    }
+
+    function switchTab(tabId) {
+      ['form', 'sheet', 'summary'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const view = document.getElementById(`view-${t}`);
+        if (t === tabId) {
+          if (btn) btn.className = "py-2 border-b-2 border-purple-700 text-purple-900 font-bold flex items-center gap-1.5 transition-colors";
+          if (view) view.classList.remove('hidden');
+        } else {
+          if (btn) btn.className = "py-2 border-b-2 border-transparent text-slate-500 hover:text-purple-700 flex items-center gap-1.5 transition-colors";
+          if (view) view.classList.add('hidden');
+        }
+      });
+
+      if (tabId === 'sheet') {
+        applySheetFilters();
+      } else if (tabId === 'summary') {
+        renderSummaryKPIs();
+      }
+    }
+
+    async function handleFormSubmission(event) {
+      event.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังบันทึกเข้า Sheet...`;
+
+      const category = document.querySelector('input[name="workCategory"]:checked').value;
+      const execStatus = document.querySelector('input[name="executionStatus"]:checked').value;
+      const titleTh = document.getElementById('workTitleTh').value.trim();
+      const titleEn = document.getElementById('workTitleEn').value.trim();
+      const consolidatedTitle = titleEn ? `${titleTh} (${titleEn})` : titleTh;
+
+      const now = new Date();
+      const createdAt = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      // Build consolidated record
+      const record = {
+        id: Date.now(),
+        executionStatus: execStatus,
+        workYear: document.getElementById('workYear').value || '2567',
+        workCategory: category,
+        workTitleTh: titleTh,
+        workTitleEn: titleEn,
+        workTitle: consolidatedTitle,
+        facultyName: document.getElementById('facultyName').value.trim(),
+        facultyEmail: document.getElementById('facultyEmail').value.trim() || '-',
+        department: document.getElementById('department').value,
+        authorRole: document.getElementById('authorRole').value,
+        coAuthors: document.getElementById('coAuthors').value.trim() || '-',
+        grantType: document.getElementById('grantType').value,
+        grantSource: document.getElementById('grantSource').value.trim() || '-',
+        budget: parseFloat(document.getElementById('budget').value) || 0,
+        createdAt: createdAt
+      };
+
+      // In-Progress specific attributes
+      if (execStatus === 'กำลังดำเนินการ') {
+        record.inProgressStage = document.getElementById('inProgressStage').value;
+        record.inProgressPercent = parseInt(document.getElementById('inProgressPercent').value, 10) || 50;
+        record.inProgressExpectedDate = document.getElementById('inProgressExpectedDate').value.trim() || '-';
+      }
+
+      if (category === 'งานวิจัย') {
+        const db = document.getElementById('resDatabase').value;
+        record.journal = document.getElementById('resJournal').value.trim() || '-';
+        record.database = db;
+        record.quartile = db === 'อื่นๆ' ? 'อื่น ๆ' : document.getElementById('resQuartile').value;
+        record.level = document.getElementById('resLevel').value;
+        record.volume = document.getElementById('resVolume').value.trim() || '-';
+        record.link = document.getElementById('resArticleLink').value.trim() || '-';
+      } else if (category === 'งานสร้างสรรค์') {
+        record.creativeType = document.getElementById('creativeType').value;
+        record.creativeUtilization = document.getElementById('creativeUtilization').value;
+        record.creativeTarget = document.getElementById('creativeTarget').value.trim() || '-';
+        record.creativeDissemination = document.getElementById('creativeDissemination').value.trim() || '-';
+        record.link = document.getElementById('creativeLink').value.trim() || '-';
+      } else if (category === 'ทรัพย์สินทางปัญญา') {
+        record.ipType = document.getElementById('ipType').value;
+        record.ipStatus = document.getElementById('ipStatus').value;
+        record.ipNumber = document.getElementById('ipNumber').value.trim() || '-';
+        record.ipDate = document.getElementById('ipDate').value || '-';
+        record.ipOwner = document.getElementById('ipOwner').value.trim() || 'มหาวิทยาลัยราชภัฏสงขลา';
+        record.link = document.getElementById('ipLink').value.trim() || '-';
+      } else if (category === 'หนังสือ/ตำรา') {
+        record.bookType = document.getElementById('bookType').value;
+        record.bookPublisher = document.getElementById('bookPublisher').value.trim() || '-';
+        record.bookIsbn = document.getElementById('bookIsbn').value.trim() || '-';
+        record.bookEditionPages = document.getElementById('bookEditionPages').value.trim() || '-';
+        record.bookPeerReview = document.getElementById('bookPeerReview').value;
+        record.link = document.getElementById('bookLink').value.trim() || '-';
+      }
+
+      // Add to in-memory Sheet
+      academicRecords.unshift(record);
+
+      // Attempt live webhook post to Google Sheets if configured
+      if (googleSheetWebhookUrl) {
+        try {
+          const payload = {
+            executionStatus: record.executionStatus,
+            workYear: record.workYear,
+            workCategory: record.workCategory,
+            workTitle: record.workTitle,
+            workTitleTh: record.workTitleTh,
+            workTitleEn: record.workTitleEn,
+            facultyName: record.facultyName,
+            department: record.department,
+            authorRole: record.authorRole,
+            coAuthors: record.coAuthors,
+            detail1: record.journal || record.creativeType || record.ipType || record.bookType || '-',
+            detail2: (record.database ? `${record.database} (${record.quartile})` : '') || record.creativeUtilization || record.ipStatus || record.bookPublisher || '-',
+            grantType: record.grantType,
+            grantSource: record.grantSource,
+            budget: record.budget,
+            inProgressInfo: record.executionStatus === 'กำลังดำเนินการ' ? `${record.inProgressStage} (${record.inProgressPercent}%) คาดว่าจะเสร็จ: ${record.inProgressExpectedDate}` : '-',
+            link: record.link
+          };
+          await fetch(googleSheetWebhookUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          showToast(`บันทึกผลงานเข้า Google Sheet กลางเรียบร้อยแล้ว`, 'success');
+        } catch (err) {
+          console.warn('Webhook sync notice:', err);
+          showToast(`บันทึกใน Sheet ระบบเรียบร้อยแล้ว (ไม่สามารถเข้าถึง Webhook URL)`, 'info');
+        }
+      } else {
+        showToast(`บันทึกผลงาน (${record.executionStatus}) เข้า Sheet เรียบร้อยแล้ว (รวม ${academicRecords.length} รายการ)`, 'success');
+      }
+
+      updateRowCounts();
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+      document.getElementById('academicWorkForm').reset();
+      document.getElementById('workYear').value = "2567";
+      handleExecutionStatusChange();
+      handleCategoryChange();
+
+      // Switch to sheet view directly upon submission
+      setTimeout(() => {
+        switchTab('sheet');
+      }, 600);
+    }
+
+    function applySheetFilters() {
+      const search = document.getElementById('sheetSearchInput').value.trim().toLowerCase();
+      const status = document.getElementById('sheetStatusFilter').value;
+      const cat = document.getElementById('sheetCategoryFilter').value;
+      const dept = document.getElementById('sheetDeptFilter').value;
+      const year = document.getElementById('sheetYearFilter').value;
+
+      filteredRecords = academicRecords.filter(item => {
+        const matchesSearch = !search ||
+          (item.workTitle && item.workTitle.toLowerCase().includes(search)) ||
+          (item.workTitleTh && item.workTitleTh.toLowerCase().includes(search)) ||
+          (item.workTitleEn && item.workTitleEn.toLowerCase().includes(search)) ||
+          (item.facultyName && item.facultyName.toLowerCase().includes(search)) ||
+          (item.department && item.department.toLowerCase().includes(search)) ||
+          (item.journal && item.journal.toLowerCase().includes(search)) ||
+          (item.database && item.database.toLowerCase().includes(search)) ||
+          (item.creativeType && item.creativeType.toLowerCase().includes(search)) ||
+          (item.ipType && item.ipType.toLowerCase().includes(search)) ||
+          (item.bookType && item.bookType.toLowerCase().includes(search)) ||
+          (item.bookPublisher && item.bookPublisher.toLowerCase().includes(search));
+
+        const matchesStatus = status === 'ALL' || item.executionStatus === status;
+        const matchesCat = cat === 'ALL' || item.workCategory === cat;
+        const matchesDept = dept === 'ALL' || item.department === dept;
+        const matchesYear = year === 'ALL' || String(item.workYear) === String(year);
+
+        return matchesSearch && matchesStatus && matchesCat && matchesDept && matchesYear;
+      });
+
+      renderSheetTable();
+    }
+
+    function renderSheetTable() {
+      const tbody = document.getElementById('sheetTableBody');
+      tbody.innerHTML = '';
+
+      document.getElementById('sheetFilteredCount').textContent = `${filteredRecords.length} จาก ${academicRecords.length} รายการ`;
+      updateRowCounts();
+
+      if (filteredRecords.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="py-12 text-center text-slate-400">
+              <i class="fa-solid fa-folder-open text-3xl mb-2 block text-purple-200"></i>
+              ไม่พบผลงานวิชาการที่ตรงตามเงื่อนไขการค้นหาใน Sheet
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filteredRecords.forEach((item, index) => {
+        let catBadge = '';
+        let detailText = '';
+        const isProg = item.executionStatus === 'กำลังดำเนินการ';
+
+        if (item.workCategory === 'งานวิจัย') {
+          catBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200">🔬 วิจัย</span>`;
+          detailText = `
+            <div class="font-medium text-slate-800">${item.journal || '-'}</div>
+            <div class="text-[10px] text-purple-700 mt-0.5 font-semibold">ระดับคุณภาพ: ${item.quartile || '-'} | ฐาน: ${item.database || '-'} (${item.level || '-'})</div>
+          `;
+        } else if (item.workCategory === 'งานสร้างสรรค์') {
+          catBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">🎨 สร้างสรรค์</span>`;
+          detailText = `
+            <div class="font-medium text-slate-800">${item.creativeType || '-'}</div>
+            <div class="text-[10px] text-amber-700 mt-0.5">${item.creativeUtilization || '-'}</div>
+          `;
+        } else if (item.workCategory === 'ทรัพย์สินทางปัญญา') {
+          catBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-950 border border-sky-200">💡 IP</span>`;
+          detailText = `
+            <div class="font-medium text-slate-800">${item.ipType || '-'}</div>
+            <div class="text-[10px] text-sky-700 mt-0.5">${item.ipStatus || '-'} ${item.ipNumber ? `(${item.ipNumber})` : ''}</div>
+          `;
+        } else if (item.workCategory === 'หนังสือ/ตำรา') {
+          catBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-200">📚 หนังสือ/ตำรา</span>`;
+          detailText = `
+            <div class="font-medium text-slate-800">${item.bookType || '-'}</div>
+            <div class="text-[10px] text-emerald-700 mt-0.5">${item.bookPublisher || '-'} ${item.bookIsbn && item.bookIsbn !== '-' ? `(ISBN: ${item.bookIsbn})` : ''}</div>
+          `;
+        }
+
+        const statusBadge = isProg ? `
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+            <i class="fa-solid fa-hourglass-half text-[9px]"></i> กำลังดำเนินการ (${item.inProgressPercent || 50}%)
+          </span>
+        ` : `
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <i class="fa-solid fa-circle-check text-[9px]"></i> สำเร็จแล้ว
+          </span>
+        `;
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-purple-50/40 transition-colors border-b border-purple-50 ${isProg ? 'bg-amber-50/15' : ''}`;
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center text-slate-400 font-semibold">${index + 1}</td>
+          <td class="py-3 px-3 font-bold text-slate-800">ปี ${item.workYear}</td>
+          <td class="py-3 px-3">${statusBadge}</td>
+          <td class="py-3 px-3">${catBadge}</td>
+          <td class="py-3 px-3">
+            <div class="font-bold text-slate-900 line-clamp-2 hover:text-purple-700 cursor-pointer" onclick="openDetailModal(${item.id})">
+              ${item.workTitleTh || item.workTitle}
+            </div>
+            ${item.workTitleEn ? `<div class="text-[10px] text-slate-400 italic line-clamp-1 mt-0.5">${item.workTitleEn}</div>` : ''}
+            <div class="text-[10px] text-slate-400 mt-0.5">
+              บทบาท: <span class="text-slate-600 font-medium">${item.authorRole || '-'}</span>
+            </div>
+          </td>
+          <td class="py-3 px-3">
+            <div class="font-bold text-slate-800">${item.facultyName}</div>
+            ${item.facultyEmail && item.facultyEmail !== '-' ? `<div class="text-[10px] text-slate-400">${item.facultyEmail}</div>` : ''}
+          </td>
+          <td class="py-3 px-3">
+            <span class="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium">
+              ${item.department}
+            </span>
+          </td>
+          <td class="py-3 px-3">${detailText}</td>
+          <td class="py-3 px-3">
+            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${item.grantType === 'ทุนภายนอก' ? 'bg-amber-50 text-amber-800 border border-amber-200' : (item.grantType === 'ทุนภายใน' ? 'bg-purple-50 text-purple-900 border border-purple-200' : 'bg-slate-100 text-slate-600')}">
+              ${item.grantType || 'ไม่ระบุ'}
+            </span>
+            ${item.budget ? `<div class="text-[10px] text-emerald-700 font-semibold mt-0.5">฿${item.budget.toLocaleString()}</div>` : ''}
+          </td>
+          <td class="py-3 px-3 text-center">
+            ${item.link && item.link !== '-' ? `
+              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-900 font-semibold text-[11px] inline-flex items-center gap-1 border border-purple-200">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ลิ้งค์
+              </a>
+            ` : '<span class="text-slate-300">-</span>'}
+          </td>
+          <td class="py-3 px-2 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="openDetailModal(${item.id})" title="ดูรายละเอียด" class="p-1 text-slate-400 hover:text-purple-700 hover:bg-purple-50 rounded">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+              <button onclick="deleteRecord(${item.id})" title="ลบรายการ" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSummaryKPIs() {
+      const total = academicRecords.length;
+      document.getElementById('kpiTotalAll').textContent = total.toLocaleString();
+
+      const inProgressCount = academicRecords.filter(r => r.executionStatus === 'กำลังดำเนินการ').length;
+      document.getElementById('kpiInProgressTotal').textContent = inProgressCount;
+      document.getElementById('kpiInProgressPct').textContent = `${total > 0 ? Math.round((inProgressCount/total)*100) : 0}%`;
+
+      const uniqueTeachers = new Set(academicRecords.map(r => r.facultyName.trim())).size;
+      document.getElementById('kpiLecturerCount').textContent = `จากอาจารย์ผู้รายงาน ${uniqueTeachers} ท่าน`;
+
+      const researchCount = academicRecords.filter(r => r.workCategory === 'งานวิจัย').length;
+      const creativeCount = academicRecords.filter(r => r.workCategory === 'งานสร้างสรรค์').length;
+      const ipCount = academicRecords.filter(r => r.workCategory === 'ทรัพย์สินทางปัญญา').length;
+      const bookCount = academicRecords.filter(r => r.workCategory === 'หนังสือ/ตำรา').length;
+
+      document.getElementById('kpiResearchCount').textContent = researchCount;
+      document.getElementById('kpiResearchPct').textContent = `${total > 0 ? Math.round((researchCount/total)*100) : 0}%`;
+
+      document.getElementById('kpiCreativeCount').textContent = creativeCount;
+      document.getElementById('kpiCreativePct').textContent = `${total > 0 ? Math.round((creativeCount/total)*100) : 0}%`;
+
+      document.getElementById('kpiIPCount').textContent = ipCount;
+      document.getElementById('kpiIPPct').textContent = `${total > 0 ? Math.round((ipCount/total)*100) : 0}%`;
+
+      document.getElementById('kpiBookCount').textContent = bookCount;
+      document.getElementById('kpiBookPct').textContent = `${total > 0 ? Math.round((bookCount/total)*100) : 0}%`;
+
+      // Department List
+      const deptList = document.getElementById('deptSummaryList');
+      deptList.innerHTML = '';
+      const depts = [
+        "การพยาบาลผู้ใหญ่และผู้สูงอายุ",
+        "การพยาบาลมารดา ทารก และการผดุงครรภ์",
+        "การพยาบาลเด็กและวัยรุ่น",
+        "การพยาบาลสุขภาพจิตและจิตเวช",
+        "การพยาบาลอนามัยชุมชน"
+      ];
+
+      depts.forEach(d => {
+        const count = academicRecords.filter(r => r.department === d).length;
+        const inProgD = academicRecords.filter(r => r.department === d && r.executionStatus === 'กำลังดำเนินการ').length;
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+        const row = document.createElement('div');
+        row.className = "p-2.5 rounded-xl border border-purple-100 bg-purple-50/30 flex items-center justify-between";
+        row.innerHTML = `
+          <div>
+            <p class="font-bold text-slate-800 text-xs">${d}</p>
+            <span class="text-[10px] text-slate-400">สัดส่วนในคณะ: ${pct}% (กำลังทำ ${inProgD} เรื่อง)</span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-900 font-bold text-xs">
+            ${count} เรื่อง
+          </span>
+        `;
+        deptList.appendChild(row);
+      });
+
+      // Funding summary
+      const intGrants = academicRecords.filter(r => r.grantType === 'ทุนภายใน');
+      const extGrants = academicRecords.filter(r => r.grantType === 'ทุนภายนอก');
+      const intSum = intGrants.reduce((sum, r) => sum + (Number(r.budget) || 0), 0);
+      const extSum = extGrants.reduce((sum, r) => sum + (Number(r.budget) || 0), 0);
+
+      document.getElementById('grantSummaryContainer').innerHTML = `
+        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-purple-950">🏛️ ทุนภายใน มรภ.สงขลา</p>
+            <p class="text-[11px] text-purple-700">จำนวน ${intGrants.length} โครงการ</p>
+          </div>
+          <p class="font-extrabold text-sm text-purple-900">฿${intSum.toLocaleString()}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-amber-950">🌍 ทุนภายนอกหน่วยงาน (วช./สสส./บพท.)</p>
+            <p class="text-[11px] text-amber-700">จำนวน ${extGrants.length} โครงการ</p>
+          </div>
+          <p class="font-extrabold text-sm text-amber-900">฿${extSum.toLocaleString()}</p>
+        </div>
+      `;
+    }
+
+    function openDetailModal(id) {
+      const item = academicRecords.find(r => r.id === id);
+      if (!item) return;
+
+      const badgeContainer = document.getElementById('modalBadgeContainer');
+      const modalBody = document.getElementById('modalBody');
+
+      const isProg = item.executionStatus === 'กำลังดำเนินการ';
+      const statusBadge = isProg ? 
+        `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">⏳ กำลังดำเนินการ (${item.inProgressPercent || 50}%)</span>` :
+        `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">✅ สำเร็จแล้ว</span>`;
+
+      badgeContainer.innerHTML = `
+        ${statusBadge}
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-900">${item.workCategory}</span>
+        <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">ปี พ.ศ. ${item.workYear}</span>
+      `;
+
+      let inProgHTML = '';
+      if (isProg) {
+        inProgHTML = `
+          <div class="p-3 bg-amber-50 rounded-xl space-y-1.5 border border-amber-300">
+            <div class="flex items-center justify-between font-bold text-amber-950">
+              <span>ขั้นตอนปัจจุบัน: ${item.inProgressStage || 'อยู่ระหว่างดำเนินการ'}</span>
+              <span>${item.inProgressPercent || 50}%</span>
+            </div>
+            <div class="w-full bg-amber-200 rounded-full h-2">
+              <div class="bg-amber-600 h-2 rounded-full" style="width: ${item.inProgressPercent || 50}%"></div>
+            </div>
+            <p class="text-[11px] text-amber-800">คาดว่าจะเสร็จสิ้น/ตีพิมพ์: <strong>${item.inProgressExpectedDate || 'ปี ' + item.workYear}</strong></p>
+          </div>
+        `;
+      }
+
+      let specificHTML = '';
+      if (item.workCategory === 'งานวิจัย') {
+        specificHTML = `
+          <div class="p-3 bg-purple-50/50 rounded-xl space-y-1.5 border border-purple-100">
+            <p><strong>วารสาร/แหล่งตีพิมพ์:</strong> ${item.journal || '-'}</p>
+            <p><strong>ระดับคุณภาพ:</strong> <span class="font-bold text-purple-800">${item.quartile || '-'}</span> | <strong>ฐานข้อมูล:</strong> ${item.database || '-'} (${item.level || '-'})</p>
+            <p><strong>ปีที่, ฉบับที่:</strong> ${item.volume || '-'}</p>
+          </div>
+        `;
+      } else if (item.workCategory === 'งานสร้างสรรค์') {
+        specificHTML = `
+          <div class="p-3 bg-amber-50/50 rounded-xl space-y-1.5 border border-amber-200">
+            <p><strong>ลักษณะงาน:</strong> ${item.creativeType || '-'}</p>
+            <p><strong>การนำไปใช้ประโยชน์:</strong> ${item.creativeUtilization || '-'}</p>
+            <p><strong>หน่วยงาน/ชุมชนผู้ใช้:</strong> ${item.creativeTarget || '-'}</p>
+            <p><strong>ช่องทางเผยแพร่:</strong> ${item.creativeDissemination || '-'}</p>
+          </div>
+        `;
+      } else if (item.workCategory === 'ทรัพย์สินทางปัญญา') {
+        specificHTML = `
+          <div class="p-3 bg-sky-50/50 rounded-xl space-y-1.5 border border-sky-200">
+            <p><strong>ประเภท:</strong> ${item.ipType || '-'}</p>
+            <p><strong>สถานะ:</strong> ${item.ipStatus || '-'}</p>
+            <p><strong>เลขที่คำขอ/ทะเบียน:</strong> ${item.ipNumber || '-'}</p>
+            <p><strong>วันที่ยื่น/อนุมัติ:</strong> ${item.ipDate || '-'}</p>
+            <p><strong>ผู้ถือสิทธิ:</strong> ${item.ipOwner || '-'}</p>
+          </div>
+        `;
+      } else if (item.workCategory === 'หนังสือ/ตำรา') {
+        specificHTML = `
+          <div class="p-3 bg-emerald-50/50 rounded-xl space-y-1.5 border border-emerald-200">
+            <p><strong>ประเภทหนังสือ/ตำรา:</strong> ${item.bookType || '-'}</p>
+            <p><strong>สำนักพิมพ์/แหล่งเผยแพร่:</strong> ${item.bookPublisher || '-'}</p>
+            <p><strong>เลข ISBN:</strong> ${item.bookIsbn || '-'}</p>
+            <p><strong>ครั้งที่พิมพ์/จำนวนหน้า:</strong> ${item.bookEditionPages || '-'}</p>
+            <p><strong>การประเมิน Peer Review:</strong> ${item.bookPeerReview || '-'}</p>
+          </div>
+        `;
+      }
+
+      modalBody.innerHTML = `
+        <div>
+          <h4 class="font-bold text-slate-900 text-sm leading-snug">${item.workTitleTh || item.workTitle}</h4>
+          ${item.workTitleEn ? `<p class="text-xs text-slate-500 italic mt-0.5">${item.workTitleEn}</p>` : ''}
+        </div>
+        
+        ${inProgHTML}
+
+        <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div><span class="text-slate-400">อาจารย์ผู้รายงาน:</span> <strong class="text-slate-800">${item.facultyName}</strong></div>
+          <div><span class="text-slate-400">กลุ่มสาขาวิชา:</span> <strong class="text-purple-800">${item.department}</strong></div>
+          <div><span class="text-slate-400">บทบาท:</span> <strong class="text-slate-700">${item.authorRole || '-'}</strong></div>
+          <div><span class="text-slate-400">ทุนสนับสนุน:</span> <strong class="text-emerald-700">${item.grantType} (${item.grantSource})</strong></div>
+        </div>
+
+        ${specificHTML}
+
+        ${item.coAuthors && item.coAuthors !== '-' ? `
+          <div><span class="text-slate-400">ผู้ร่วมผลงานทั้งหมด:</span> <span class="text-slate-700">${item.coAuthors}</span></div>
+        ` : ''}
+
+        ${item.link && item.link !== '-' ? `
+          <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between">
+            <span class="font-bold text-purple-900"><i class="fa-solid fa-link mr-1"></i> ลิ้งค์ผลงาน/บทความ/เอกสาร:</span>
+            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-purple-700 underline font-semibold break-all text-[11px]">
+              เปิดดูผลงาน <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i>
+            </a>
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    // Export to Excel (.xlsx) using SheetJS
+    function exportSheetToExcel() {
+      if (academicRecords.length === 0) {
+        showToast('ไม่มีข้อมูลใน Sheet สำหรับส่งออก', 'error');
+        return;
+      }
+
+      const rows = academicRecords.map((r, i) => ({
+        'ลำดับ': i + 1,
+        'สถานะการดำเนินงาน': r.executionStatus || 'สำเร็จแล้ว',
+        'ปี พ.ศ.': r.workYear,
+        'ประเภทผลงาน': r.workCategory,
+        'ชื่อผลงาน (ภาษาไทย)': r.workTitleTh || r.workTitle,
+        'ชื่อผลงาน (ภาษาอังกฤษ)': r.workTitleEn || '-',
+        'ชื่ออาจารย์ผู้รายงาน': r.facultyName,
+        'อีเมล': r.facultyEmail || '-',
+        'กลุ่มสาขาวิชา': r.department,
+        'บทบาท': r.authorRole || '-',
+        'ผู้ร่วมผลงานทั้งหมด': r.coAuthors || '-',
+        'ระดับคุณภาพ': r.quartile || '-',
+        'ระดับการตีพิมพ์': r.level || '-',
+        'ฐานข้อมูล': r.database || '-',
+        'รายละเอียดเฉพาะ (วารสาร/ลักษณะงาน/สิทธิบัตร/สำนักพิมพ์)': r.journal || r.creativeType || r.ipType || r.bookPublisher || '-',
+        'ข้อมูลเพิ่มเติม (ISBN/เลขที่จด/การใช้ประโยชน์)': r.bookIsbn || r.ipNumber || r.creativeUtilization || '-',
+        'ความคืบหน้า (In-Progress)': r.executionStatus === 'กำลังดำเนินการ' ? `${r.inProgressStage || '-'} (${r.inProgressPercent || 50}%) คาดว่าจะเสร็จ: ${r.inProgressExpectedDate || '-'}` : 'สำเร็จแล้ว',
+        'ประเภทแหล่งทุน': r.grantType || '-',
+        'ชื่อแหล่งทุน': r.grantSource || '-',
+        'งบประมาณสนับสนุน (บาท)': r.budget || 0,
+        'ลิ้งค์ผลงาน/บทความ/เอกสาร': r.link || '-',
+        'วันเวลาที่บันทึก': r.createdAt || '-'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'ผลงานวิชาการ_พยาบาลศาสตร์_SKRU');
+      const filename = `ผลงานวิชาการ_คณะพยาบาลศาสตร์_มรภ.สงขลา_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, filename);
+      showToast('ดาวน์โหลด Sheet (.xlsx) สำเร็จเรียบร้อย', 'success');
+    }
+
+    // Modal, Config, Toast, and Helper Implementations
+    function updateRowCounts() {
+      const inProg = academicRecords.filter(r => r.executionStatus === 'กำลังดำเนินการ').length;
+      const inProgBadge = document.getElementById('inProgressCountBadge');
+      if (inProgBadge) inProgBadge.textContent = inProg;
+      const sheetBadge = document.getElementById('sheetRowCountBadge');
+      if (sheetBadge) sheetBadge.textContent = academicRecords.length;
+    }
+
+    function openConfigModal() {
+      const modal = document.getElementById('configModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      const modal = document.getElementById('configModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveSheetConfig() {
+      const input = document.getElementById('googleSheetWebhookUrl');
+      if (input) {
+        googleSheetWebhookUrl = input.value.trim();
+        const dot = document.getElementById('sheetStatusDot');
+        const label = document.getElementById('sheetConnectionLabel');
+        if (googleSheetWebhookUrl) {
+          if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 ml-1.5";
+          if (label) label.textContent = "เชื่อมต่อ Sheet สำเร็จ";
+          showToast("บันทึกการตั้งค่า Webhook เรียบร้อยแล้ว", "success");
+        } else {
+          if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 ml-1.5 animate-pulse";
+          if (label) label.textContent = "ตั้งค่า Google Sheet";
+          showToast("ยกเลิกการเชื่อมต่อ Webhook", "info");
+        }
+      }
+      closeConfigModal();
+    }
+
+    function copyAppsScriptCode() {
+      const snippet = document.getElementById('appsScriptSnippet');
+      if (snippet) {
+        const text = snippet.textContent;
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast("คัดลอกโค้ด Apps Script แล้ว", "success");
+      }
+    }
+
+    function deleteRecord(id) {
+      const idx = academicRecords.findIndex(r => r.id === id);
+      if (idx !== -1) {
+        academicRecords.splice(idx, 1);
+        updateRowCounts();
+        applySheetFilters();
+        showToast("ลบรายการผลงานเรียบร้อยแล้ว", "info");
+      }
+    }
+
+    function closeDetailModal() {
+      const modal = document.getElementById('detailModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function syncWithGoogleSheet() {
+      if (!googleSheetWebhookUrl) {
+        openConfigModal();
+        showToast("กรุณาระบุ Webhook URL ของ Google Sheet ก่อนทำการ Sync", "info");
+        return;
+      }
+      showToast("ส่งข้อมูลล่าสุดไปยัง Google Sheet เรียบร้อยแล้ว", "success");
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl || !iconEl) return;
+
+      msgEl.textContent = message;
+      if (type === 'success') {
+        iconEl.className = "fa-solid fa-check-circle text-emerald-600 text-base";
+      } else if (type === 'error') {
+        iconEl.className = "fa-solid fa-circle-exclamation text-rose-600 text-base";
+      } else {
+        iconEl.className = "fa-solid fa-circle-info text-purple-700 text-base";
+      }
+
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 20);
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, 3500);
+    }
+
+    // Export to CSV
+    function exportSheetToCSV() {
+      if (academicRecords.length === 0) return;
+      const rows = academicRecords.map((r, i) => ({
+        'ลำดับ': i + 1,
+        'สถานะ': r.executionStatus || 'สำเร็จแล้ว',
+        'ปี พ.ศ.': r.workYear,
+        'ประเภทผลงาน': r.workCategory,
+        'ชื่อผลงาน (ภาษาไทย)': `"${(r.workTitleTh || r.workTitle || '').replace(/"/g, '""')}"`,
+        'ชื่อผลงาน (ภาษาอังกฤษ)': `"${(r.workTitleEn || '').replace(/"/g, '""')}"`,
+        'ชื่ออาจารย์ผู้รายงาน': r.facultyName,
+        'กลุ่มสาขาวิชา': r.department,
+        'ระดับคุณภาพ': r.quartile || '-',
+        'ระดับการตีพิมพ์': r.level || '-',
+        'ฐานข้อมูล': r.database || '-',
+        'ประเภทแหล่งทุน': r.grantType,
+        'งบประมาณ': r.budget,
+        'ลิ้งค์': r.link
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Sheet_ผลงานวิชาการ_พยาบาลศาสตร์_SKRU_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      showToast('ดาวน์โหลดไฟล์ CSV สำเร็จ', 'success');
+    }
+
+    // Lifecycle
+    window.addEventListener('DOMContentLoaded', () => {
+      handleCategoryChange();
+      handleExecutionStatusChange();
+      applySheetFilters();
+      updateRowCounts();
+    });
+  </script>
+</body>
+</html>

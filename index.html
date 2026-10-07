@@ -104,13 +104,7 @@
 
         <!-- Action / Sheet Integration Status -->
         <div class="flex items-center flex-wrap gap-2">
-          <!-- Google Sheets Status Button -->
-          <button onclick="openConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200 transition-all shadow-xs" title="ตั้งค่าเชื่อมต่อ Google Sheets">
-            <i class="fa-solid fa-table-cells text-emerald-600 mr-1.5"></i>
-            <span id="sheetConnectionLabel">ตั้งค่า Google Sheet</span>
-            <span id="sheetStatusDot" class="w-2 h-2 rounded-full bg-amber-400 ml-1.5 animate-pulse"></span>
-          </button>
-
+          
           <!-- Export Excel Directly -->
           <button onclick="exportSheetToExcel()" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-xs">
             <i class="fa-solid fa-file-excel mr-1.5 text-emerald-600"></i>
@@ -1019,84 +1013,7 @@
         </div>
       </div>
     </div>
-
   </main>
-
-  <!-- Google Sheets Integration Config Modal -->
-  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
-            <i class="fa-solid fa-table-cells text-base"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-slate-900 text-sm">การเชื่อมต่อ Google Sheets กลาง</h3>
-            <p class="text-[11px] text-slate-500">ให้อาจารย์กรอกแล้วข้อมูลถูกส่งไปบันทึกลงใน Google Sheet อัตโนมัติ</p>
-          </div>
-        </div>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">
-            Google Apps Script Web App URL (Endpoint)
-          </label>
-          <input type="url" id="googleSheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec"
-                 class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 text-xs">
-          <p class="text-[11px] text-slate-400 mt-1">
-            * หากยังไม่มี URL สามารถบันทึกในเบราว์เซอร์และกด <strong>"ดาวน์โหลด Sheet (.xlsx)"</strong> ได้ทันที
-          </p>
-        </div>
-
-        <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 space-y-2">
-          <div class="flex items-center justify-between font-bold text-purple-900">
-            <span><i class="fa-solid fa-code mr-1"></i> โค้ด Google Apps Script (doPost) สำหรับวางใน Sheet:</span>
-            <button onclick="copyAppsScriptCode()" class="text-[11px] text-purple-700 hover:underline">
-              <i class="fa-regular fa-copy"></i> คัดลอกโค้ด
-            </button>
-          </div>
-          <pre id="appsScriptSnippet" class="p-2.5 bg-slate-900 text-emerald-300 rounded-lg text-[10px] overflow-x-auto max-h-36 font-mono leading-relaxed">
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([
-    new Date(),
-    data.executionStatus, // สำเร็จแล้ว หรือ กำลังดำเนินการ
-    data.workYear,
-    data.workCategory,
-    data.workTitle,
-    data.facultyName,
-    data.department,
-    data.authorRole,
-    data.coAuthors,
-    data.detail1, // Journal / CreativeType / IPType
-    data.detail2, // Database-QualityLevel / Utilization / IPStatus
-    data.grantType,
-    data.grantSource,
-    data.budget,
-    data.inProgressInfo || '-',
-    data.link
-  ]);
-  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</pre>
-        </div>
-      </div>
-
-      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
-        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200">
-          ยกเลิก
-        </button>
-        <button onclick="saveSheetConfig()" class="px-4 py-2 cattleya-gradient text-white font-bold rounded-xl hover:opacity-90">
-          บันทึกการตั้งค่า
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Detail Modal -->
   <div id="detailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -2016,49 +1933,6 @@ function doPost(e) {
       if (sheetBadge) sheetBadge.textContent = academicRecords.length;
     }
 
-    function openConfigModal() {
-      const modal = document.getElementById('configModal');
-      if (modal) modal.classList.remove('hidden');
-    }
-
-    function closeConfigModal() {
-      const modal = document.getElementById('configModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function saveSheetConfig() {
-      const input = document.getElementById('googleSheetWebhookUrl');
-      if (input) {
-        googleSheetWebhookUrl = input.value.trim();
-        const dot = document.getElementById('sheetStatusDot');
-        const label = document.getElementById('sheetConnectionLabel');
-        if (googleSheetWebhookUrl) {
-          if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 ml-1.5";
-          if (label) label.textContent = "เชื่อมต่อ Sheet สำเร็จ";
-          showToast("บันทึกการตั้งค่า Webhook เรียบร้อยแล้ว", "success");
-        } else {
-          if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 ml-1.5 animate-pulse";
-          if (label) label.textContent = "ตั้งค่า Google Sheet";
-          showToast("ยกเลิกการเชื่อมต่อ Webhook", "info");
-        }
-      }
-      closeConfigModal();
-    }
-
-    function copyAppsScriptCode() {
-      const snippet = document.getElementById('appsScriptSnippet');
-      if (snippet) {
-        const text = snippet.textContent;
-        const temp = document.createElement('textarea');
-        temp.value = text;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand('copy');
-        document.body.removeChild(temp);
-        showToast("คัดลอกโค้ด Apps Script แล้ว", "success");
-      }
-    }
-
     function deleteRecord(id) {
       const idx = academicRecords.findIndex(r => r.id === id);
       if (idx !== -1) {
@@ -2076,8 +1950,7 @@ function doPost(e) {
 
     function syncWithGoogleSheet() {
       if (!googleSheetWebhookUrl) {
-        openConfigModal();
-        showToast("กรุณาระบุ Webhook URL ของ Google Sheet ก่อนทำการ Sync", "info");
+        showToast("ยังไม่ได้กำหนด Webhook URL", "info");
         return;
       }
       showToast("ส่งข้อมูลล่าสุดไปยัง Google Sheet เรียบร้อยแล้ว", "success");
